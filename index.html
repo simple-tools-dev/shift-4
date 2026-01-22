@@ -220,8 +220,7 @@
       border-radius: 14px;
       padding: 12px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-    
-      position: relative;}
+    }
     .bevel{
       background: rgba(255,255,255,0.03);
       border-radius: 12px;
@@ -373,20 +372,6 @@
     .row{ display:flex; gap:10px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
     label{ font-size:12px; color: var(--muted); }
 
-    
-    input[type="text"]{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    :root[data-theme="light"] input[type="text"]{ background: rgba(0,0,0,0.03); }
-
-
     select{
       width:100%;
       padding:10px 12px;
@@ -430,50 +415,6 @@
       border:1px solid rgba(255,255,255,0.30);
     }
     :root[data-theme="light"] .dot{ border-color: rgba(0,0,0,0.20); }
-
-    
-    .toast{
-      position:absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.55);
-      color: rgba(255,255,255,0.92);
-      box-shadow: 0 14px 34px rgba(0,0,0,0.38);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      max-width: calc(100% - 24px);
-      text-align:center;
-      font-weight: 700;
-      letter-spacing: .2px;
-      z-index: 5;
-      opacity: 0;
-      pointer-events:none;
-    }
-    :root[data-theme="light"] .toast{
-      background: rgba(255,255,255,0.88);
-      color: rgba(0,0,0,0.86);
-      border-color: rgba(0,0,0,0.12);
-      box-shadow: 0 14px 34px rgba(0,0,0,0.18);
-    }
-    .toast.show{
-      animation: toastIn 240ms ease-out forwards;
-    }
-    .toast.hide{
-      animation: toastOut 240ms ease-in forwards;
-    }
-    @keyframes toastIn{
-      from{ opacity:0; transform: translateX(-50%) translateY(-6px) scale(0.98); }
-      to{ opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
-    }
-    @keyframes toastOut{
-      from{ opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
-      to{ opacity:0; transform: translateX(-50%) translateY(-6px) scale(0.98); }
-    }
-
 
     .help{
       margin-top: 6px;
@@ -544,7 +485,6 @@
 
         <div class="bodyPad">
           <div class="msPanel bevel">
-            <div id="toast" class="toast" role="status" aria-live="polite"></div>
             <div class="boardWrap">
               <div class="board" id="board" aria-label="Board 4x4" data-density="auto"></div>
             </div>
@@ -576,23 +516,9 @@
                 <option value="ai">AI starts</option>
               </select>
             </div>
-
           </div>
 
           <div class="row">
-            <div style="flex:1; min-width: 150px;">
-              <label id="p1NameLabel" for="p1Name">Your name</label>
-              <input id="p1Name" type="text" maxlength="18" autocomplete="off" />
-            </div>
-
-            <div style="flex:1; min-width: 150px;">
-              <label id="p2NameLabel" for="p2Name">Opponent name</label>
-              <input id="p2Name" type="text" maxlength="18" autocomplete="off" />
-            </div>
-          </div>
-
-          <div class="row">
-
             <div style="flex:1; min-width: 150px;">
               <label id="aiSpeedLabel" for="aiSpeed">AI speed</label>
               <select id="aiSpeed">
@@ -721,14 +647,6 @@
       p1Label: "Player 1 color",
       p2Label: "Player 2 / AI color",
 
-      p1NameLabel: "Your name",
-p2NameLabel: "Opponent name",
-namePlaceholder: "Name",
-aiName: "AI",
-winToast: (name) => `🏆 ${name} wins!`,
-drawToast: "🤝 Draw!"
-
-
       beforeStart: "Choose your settings and press Start game.",
       turn: (p) => `Turn: Player ${p}`,
       draw: "🤝 Draw!\n(Both players have 4 in a row after the Shift)",
@@ -792,14 +710,6 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
 
       p1Label: "Spelare 1 färg",
       p2Label: "Spelare 2 / AI färg",
-
-      p1NameLabel: "Ditt namn",
-p2NameLabel: "Motståndare",
-namePlaceholder: "Namn",
-aiName: "AI",
-winToast: (name) => `🏆 ${name} vinner!`,
-drawToast: "🤝 Oavgjort!"
-
 
       beforeStart: "Gör dina inställningar och tryck på Starta spel.",
       turn: (p) => `Tur: Spelare ${p}`,
@@ -866,11 +776,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   const p1ColorEl = document.getElementById("p1Color");
   const p2ColorEl = document.getElementById("p2Color");
 
-  const p1NameLabel = document.getElementById("p1NameLabel");
-  const p2NameLabel = document.getElementById("p2NameLabel");
-  const p1NameEl = document.getElementById("p1Name");
-  const p2NameEl = document.getElementById("p2Name");
-
   const btnStart = document.getElementById("btnStart");
   const btnNew = document.getElementById("btnNew");
   const btnReset = document.getElementById("btnReset");
@@ -879,7 +784,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   const statusEl = document.getElementById("status");
   const helpText = document.getElementById("helpText");
-  const toastEl = document.getElementById("toast");
 
   const turnDot = document.getElementById("turnDot");
   const turnText = document.getElementById("turnText");
@@ -978,7 +882,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   let selectedFrom = null;
 
   let winner = 0; // 0 none, 1/2 win, 3 draw
-  let endToastShown = false;
   let winLine = null;
 
   let history = [];
@@ -1014,45 +917,27 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     return { x: c*(cs+gap), y: r*(cs+gap) };
   }
 
-  function showToast(msg){
-    if (!toastEl) return;
-    toastEl.textContent = msg;
-    toastEl.classList.remove("hide");
-    toastEl.classList.add("show");
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=>{
-      toastEl.classList.remove("show");
-      toastEl.classList.add("hide");
-    }, 3000);
+  function setStatus(kind, text){
+    statusEl.className = `status ${kind||""}`.trim();
+    statusEl.textContent = text;
   }
 
-  
-  function getPlayerNames(){
-    const L = t();
-    const mode = modeEl.value;
+  function updateTurnPill(){
+    const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
+    const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
+    const hex = current===1 ? p1Hex : p2Hex;
+    turnDot.style.setProperty("--c", hex);
 
-    const humanDefault = (getLang()==="sv") ? "Spelare" : "Player";
-
-    const humanName = (p1NameEl?.value || "").trim() || `${humanDefault} 1`;
-    const p2Typed = (p2NameEl?.value || "").trim() || `${humanDefault} 2`;
-
-    // names indexed by player number: 1..2
-    const names = {1: `${humanDefault} 1`, 2: `${humanDefault} 2`};
-
-    if (mode === "ai"){
-      const aiName = L.aiName || "AI";
-      // In AI mode, the "Your name" input always belongs to the human player.
-      // aiPlayer tells us which player number the AI is.
-      names[aiPlayer] = aiName;
-      names[other(aiPlayer)] = humanName;
-    } else {
-      names[1] = humanName;
-      names[2] = p2Typed;
+    if (!started){
+      turnText.textContent = "—";
+      return;
     }
-    return names;
+    if (winner===3) turnText.textContent = "—";
+    else if (winner) turnText.textContent = t().turn(winner);
+    else turnText.textContent = t().turn(current);
   }
 
-function opponentHasMove(oppPlayer){
+  function opponentHasMove(oppPlayer){
     for (let i=0;i<16;i++){
       const pid = board[i];
       if (!pid) continue;
@@ -1275,24 +1160,6 @@ function opponentHasMove(oppPlayer){
     }
   }
 
-
-  
-  function resultStatus(){
-    const names = getPlayerNames();
-    if (winner===3){
-      return (getLang()==="sv")
-        ? "🤝 Oavgjort!\n(Båda har 4 i rad efter Shift)"
-        : "🤝 Draw!\n(Both players have 4 in a row after the Shift)";
-    }
-    if (winner===1 || winner===2){
-      const name = names[winner];
-      return (getLang()==="sv")
-        ? `🎉 ${name} vinner!\n(4 i rad efter Shift)`
-        : `🎉 ${name} wins!\n(4 in a row after Shift)`;
-    }
-    return "";
-  }
-
   function updateStatusText(){
     const L = t();
 
@@ -1302,14 +1169,11 @@ function opponentHasMove(oppPlayer){
     }
 
     if (winner===3){
-      setStatus("ok", resultStatus());
-      if (!endToastShown){ showToast(L.drawToast); endToastShown = true; }
+      setStatus("ok", L.draw);
       return;
     }
     if (winner){
-      const names = getPlayerNames();
-      setStatus("ok", resultStatus());
-      if (!endToastShown){ showToast(L.winToast(names[winner])); endToastShown = true; }
+      setStatus("ok", L.win(winner));
       return;
     }
 
@@ -1334,17 +1198,6 @@ function opponentHasMove(oppPlayer){
     }
   }
 
-  function syncNameInputs(){
-    const L = t();
-    if (modeEl.value === "ai"){
-      p2NameEl.value = L.aiName || "AI";
-      p2NameEl.disabled = true;
-    } else {
-      p2NameEl.disabled = started || locked;
-      if (!p2NameEl.value.trim()) p2NameEl.value = (getLang()==="sv" ? "Spelare 2" : "Player 2");
-    }
-  }
-
   function syncControls(){
     btnStart.disabled = locked;
     btnNew.disabled = !started || locked;
@@ -1366,7 +1219,6 @@ function opponentHasMove(oppPlayer){
   }
 
   function syncAll(){
-    syncNameInputs();
     updateTurnPill();
     syncHighlights();
     updateStatusText();
@@ -1538,12 +1390,6 @@ function opponentHasMove(oppPlayer){
 
       phase = "shift";
       syncAll();
-
-      if (isBoardFull()){
-        await performFinalShiftRun(5);
-        return;
-      }
-
       await sleep(140);
 
       doShift();
@@ -1643,18 +1489,13 @@ function opponentHasMove(oppPlayer){
       phase = "shift";
       syncAll();
 
-      // If the board is full, Shift repeats up to 5 times automatically to decide the result.
-      if (isBoardFull()){
-        await performFinalShiftRun(5);
-        return;
-      }
-
       // Auto shift after placing (optional)
       if (autoShiftOn){
         // prevent double-input spam while auto shift is about to happen
         locked = true;
         syncAll();
         scheduleAutoShift();
+        // locked will be released inside performShiftSequence
       }
       return;
     }
@@ -1728,7 +1569,6 @@ function opponentHasMove(oppPlayer){
 
     winner = 0;
     winLine = null;
-    endToastShown = false;
     history = [];
     selectedFrom = null;
     phase = "moveOpp";
@@ -1801,9 +1641,6 @@ function opponentHasMove(oppPlayer){
   });
 
   p1ColorEl.addEventListener("change", () => { if (!started) enforceDistinctColors(); });
-
-  p1NameEl.addEventListener("input", () => { localStorage.setItem("shift4_p1Name", p1NameEl.value); updateTurnPill(); });
-  p2NameEl.addEventListener("input", () => { localStorage.setItem("shift4_p2Name", p2NameEl.value); updateTurnPill(); });
   p2ColorEl.addEventListener("change", () => { if (!started) enforceDistinctColors(); });
 
   langBtn.addEventListener("click", () => {
@@ -1815,7 +1652,6 @@ function opponentHasMove(oppPlayer){
   modeEl.addEventListener("change", () => {
     startWhoEl.disabled = (modeEl.value!=="ai") || started || locked;
     aiSpeedEl.disabled = (modeEl.value!=="ai") || started || locked;
-    syncNameInputs();
     syncAll();
   });
 
@@ -1869,11 +1705,6 @@ function opponentHasMove(oppPlayer){
     p1Label.textContent = L.p1Label;
     p2Label.textContent = L.p2Label;
 
-    p1NameLabel.textContent = L.p1NameLabel;
-    p2NameLabel.textContent = (modeEl.value==="ai") ? L.p2NameLabel : L.p2NameLabel;
-    p1NameEl.placeholder = L.namePlaceholder;
-    p2NameEl.placeholder = L.namePlaceholder;
-
     helpText.innerHTML = L.helpHtml;
 
     const isSv = getLang()==="sv";
@@ -1906,12 +1737,6 @@ function opponentHasMove(oppPlayer){
     populateColors();
     modeEl.value = "ai";
     startWhoEl.disabled = false;
-
-    // restore names
-    const savedP1Name = localStorage.getItem("shift4_p1Name");
-    const savedP2Name = localStorage.getItem("shift4_p2Name");
-    if (savedP1Name) p1NameEl.value = savedP1Name;
-    if (savedP2Name) p2NameEl.value = savedP2Name;
 
     applyTranslations();
 
