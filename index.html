@@ -511,7 +511,9 @@
             <h1 id="gameHeaderTitle">Shift-4</h1>
             <!-- Removed subtitle line per request -->
           </div>
-          <div class="pill" id="turnPill">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="btn" id="btnSkip" type="button" style="margin-right:6px;">Skip</button>
+            <div class="pill" id="turnPill">
             <span class="dot" id="turnDot"></span>
             <span id="turnText">—</span>
           </div>
@@ -606,7 +608,6 @@
           <div class="row" style="align-items:center;">
             <button class="btn" id="btnNew" type="button" disabled>New game</button>
             <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
-            <button class="btn" id="btnSkip" type="button" disabled>Skip</button>
             <button class="btn primary" id="btnShift" type="button" disabled>Shift</button>
             <button class="btn danger" id="btnReset" type="button" disabled>Reset</button>
           </div>
