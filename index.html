@@ -685,18 +685,23 @@
       autoShiftOff: "Off",
 
       p1Label: "Player 1 color",
-      p2Label: "Player 2 / AI color",
+      p2Label: "Player 2 color",
+      colorSuffix: "color",
 
       beforeStart: "Choose your settings and press Start game.",
-      turn: (p) => `Turn: Player ${p}`,
+      turnPrefix: "Turn",
+      playerN: (p) => `Player ${p}`,
+      humanName: "Human",
+      aiName: "AI",
+      winsSuffix: "wins!",
       draw: "🤝 Draw!\n(Both players have 4 in a row after the Shift)",
       drawNoWin: "🤝 Draw!\n(No one got 4 in a row after the last ball and 5 shifts)",
       finalShifts: "Board is full.\nAuto shifting up to 5 times…",
-      win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
-      stepMove: (p) => `Player ${p}:\nStep 1 (optional): Move one opponent ball to an adjacent empty cell, or press Skip.`,
-      stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nStep 1 is skipped.\nStep 2: Place your ball.`,
-      stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
-      stepShift: (p) => `Player ${p}:\nStep 3: Press Shift (rotate both orbits).`,
+
+      stepMove: (pName) => `${pName}:\nStep 1 (optional): Move one opponent ball to an adjacent empty cell, or press Skip.`,
+      stepMoveSkip: (pName) => `${pName}:\nOpponent has no legal move.\nStep 1 is skipped.\nStep 2: Place your ball.`,
+      stepPlace: (pName) => `${pName}:\nStep 2: Place your ball on any empty cell.`,
+      stepShift: (pName) => `${pName}:\nStep 3: Press Shift (rotate both orbits).`,
       aiThinking: "AI is thinking…",
       aiMove: "AI move…",
       undoMsg: "Undone.",
@@ -753,18 +758,23 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       autoShiftOff: "Av",
 
       p1Label: "Spelare 1 färg",
-      p2Label: "Spelare 2 / AI färg",
+      p2Label: "Spelare 2 färg",
+      colorSuffix: "färg",
 
       beforeStart: "Gör dina inställningar och tryck på Starta spel.",
-      turn: (p) => `Tur: Spelare ${p}`,
+      turnPrefix: "Tur",
+      playerN: (p) => `Spelare ${p}`,
+      humanName: "Human",
+      aiName: "AI",
+      winsSuffix: "vinner!",
       draw: "🤝 Oavgjort!\n(Båda har 4 i rad efter Shift)",
       drawNoWin: "🤝 Oavgjort!\n(Ingen fick 4 i rad efter sista kulan och 5 shiftningar)",
       finalShifts: "Brädet är fullt.\nShiftar automatiskt upp till 5 gånger…",
-      win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
-      stepMove: (p) => `Spelare ${p}:\nSteg 1 (valfritt): Flytta 1 av motståndarens kulor till en tom granne, eller tryck Hoppa över.`,
-      stepMoveSkip: (p) => `Spelare ${p}:\nInget giltigt flytt finns.\nSteg 1 hoppas över.\nSteg 2: Placera din kula.`,
-      stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
-      stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
+
+      stepMove: (pName) => `${pName}:\nSteg 1 (valfritt): Flytta 1 av motståndarens kulor till en tom granne, eller tryck Hoppa över.`,
+      stepMoveSkip: (pName) => `${pName}:\nInget giltigt flytt finns.\nSteg 1 hoppas över.\nSteg 2: Placera din kula.`,
+      stepPlace: (pName) => `${pName}:\nSteg 2: Placera din kula på valfri tom ruta.`,
+      stepShift: (pName) => `${pName}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
       aiThinking: "AI tänker…",
       aiMove: "AI gör sitt drag…",
       undoMsg: "Ångrat.",
@@ -789,6 +799,25 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     root.setAttribute("lang", lang === "sv" ? "sv" : "en");
   }
   function t(){ return I18N[getLang()]; }
+
+  function playerLabel(p){
+    const L = t();
+    const modeIsAI = (modeEl.value === "ai");
+    if (modeIsAI){
+      return (p === aiPlayer) ? L.aiName : L.humanName;
+    }
+    return L.playerN(p);
+  }
+
+  function turnLabel(p){
+    const L = t();
+    return `${L.turnPrefix}: ${playerLabel(p)}`;
+  }
+
+  function winLabel(p){
+    return `🎉 ${playerLabel(p)} ${t().winsSuffix}`;
+  }
+
 
   const langBtn = document.getElementById("langBtn");
   const langIcon = document.getElementById("langIcon");
@@ -1240,7 +1269,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       return;
     }
     if (winner){
-      setStatus("ok", L.win(winner));
+      setStatus("ok", winLabel(winner));
       return;
     }
 
@@ -1255,18 +1284,18 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       if (!opponentHasMove(opp)){
         if (pieces.size===0){
           phase = "placeOwn";
-          setStatus("", L.stepPlace(current));
+          setStatus("", L.stepPlace(playerLabel(current)));
         } else {
           phase = "placeOwn";
-          setStatus("warn", L.stepMoveSkip(current));
+          setStatus("warn", L.stepMoveSkip(playerLabel(current)));
         }
       } else {
-        setStatus("", L.stepMove(current));
+        setStatus("", L.stepMove(playerLabel(current)));
       }
     } else if (phase==="placeOwn"){
-      setStatus("", L.stepPlace(current));
+      setStatus("", L.stepPlace(playerLabel(current)));
     } else {
-      setStatus("warn", L.stepShift(current));
+      setStatus("warn", L.stepShift(playerLabel(current)));
     }
   }
 
@@ -1318,7 +1347,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       showOverlay((drawType==="no4") ? L.drawNoWin : L.draw);
       return;
     }
-    showOverlay(L.win(winner));
+    showOverlay(winLabel(winner));
   }
 
   function pushHistory(){
@@ -1834,6 +1863,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   modeEl.addEventListener("change", () => {
     startWhoEl.disabled = (modeEl.value!=="ai") || started || locked;
     aiSpeedEl.disabled = (modeEl.value!=="ai") || started || locked;
+    applyTranslations();
     syncAll();
   });
 
@@ -1885,8 +1915,14 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (as[0]) as[0].textContent = L.autoShiftOn;
     if (as[1]) as[1].textContent = L.autoShiftOff;
 
-    p1Label.textContent = L.p1Label;
-    p2Label.textContent = L.p2Label;
+    // Color labels depend on mode (AI vs local)
+    if (modeEl.value === "ai"){
+      p1Label.textContent = `${playerLabel(1)} ${L.colorSuffix}`;
+      p2Label.textContent = `${playerLabel(2)} ${L.colorSuffix}`;
+    } else {
+      p1Label.textContent = L.p1Label;
+      p2Label.textContent = L.p2Label;
+    }
 
     helpText.innerHTML = L.helpHtml;
 
