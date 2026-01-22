@@ -444,7 +444,6 @@
       .panel{ padding:14px; }
     }
 
-
     .gameOverlay{
       position:absolute;
       inset: 0;
@@ -476,7 +475,6 @@
       background: rgba(255,255,255,0.78);
       color: rgba(0,0,0,0.88);
     }
-
   </style>
 </head>
 
@@ -513,9 +511,9 @@
           <div class="pillWrap" style="display:flex; align-items:center; gap:6px;">
             <button class="btn" id="btnSkip" type="button">Skip</button>
             <div class="pill" id="turnPill">
-            <span class="dot" id="turnDot"></span>
-            <span id="turnText">—</span>
-          </div>
+              <span class="dot" id="turnDot"></span>
+              <span id="turnText">—</span>
+            </div>
           </div>
         </div>
 
@@ -683,7 +681,7 @@
       autoShiftOff: "Off",
 
       p1Label: "Player 1 color",
-      p2Label: "Player 2 / AI color",
+      p2Label: "Player 2 color",
 
       beforeStart: "Choose your settings and press Start game.",
       turn: (name) => `Turn: ${name}`,
@@ -750,7 +748,7 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       autoShiftOff: "Av",
 
       p1Label: "Spelare 1 färg",
-      p2Label: "Spelare 2 / AI färg",
+      p2Label: "Spelare 2 färg",
 
       beforeStart: "Gör dina inställningar och tryck på Starta spel.",
       turn: (name) => `Tur: ${name}`,
@@ -946,12 +944,11 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   const rcToIdx = (r,c) => r*4+c;
   const other = (p) => p===1?2:1;
 
+  // Names: AI-mode uses Human/AI; PvP uses Player 1/2 (localized)
   function nameOf(player){
-    // AI mode: Human is always Player 1, AI is always Player 2
     if (aiEnabled){
       return (player === 1) ? "Human" : "AI";
     }
-    // Local PvP: language-dependent label
     return (getLang()==="sv") ? `Spelare ${player}` : `Player ${player}`;
   }
 
@@ -994,6 +991,18 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }[c]));
   }
 
+  // NEW: updates the color labels based on selected mode (AI vs PvP)
+  function updateColorLabels(){
+    const L = t();
+    const aiMode = (modeEl.value === "ai");
+    if (aiMode){
+      p1Label.textContent = (getLang()==="sv") ? "Human färg" : "Human color";
+      p2Label.textContent = (getLang()==="sv") ? "AI färg" : "AI color";
+    } else {
+      p1Label.textContent = L.p1Label;
+      p2Label.textContent = L.p2Label;
+    }
+  }
 
   function updateTurnPill(){
     const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
@@ -1005,13 +1014,9 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       turnText.textContent = "—";
       return;
     }
-    if (winner===3) {
-      turnText.textContent = "—";
-    } else if (winner) {
-      turnText.textContent = t().turn(nameOf(winner));
-    } else {
-      turnText.textContent = t().turn(nameOf(current));
-    }
+    if (winner===3) turnText.textContent = "—";
+    else if (winner) turnText.textContent = t().turn(nameOf(winner));
+    else turnText.textContent = t().turn(nameOf(current));
   }
 
   function opponentHasMove(oppPlayer){
@@ -1301,7 +1306,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   }
 
   function syncAll(){
-    // Auto-skip Step 1 if opponent has no legal move
     if (started && !winner && phase==="moveOpp"){
       const opp = other(current);
       if (!opponentHasMove(opp)){
@@ -1629,7 +1633,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }
   }
 
-
   async function finaleAfterLastPlacement(){
     if (!started || winner) return;
 
@@ -1714,22 +1717,20 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     aiEnabled = (modeEl.value==="ai");
 
     if (!aiEnabled){
-      // Local PvP: player 1 starts, colors stay Player 1/2
       current = 1;
       aiPlayer = 2; // irrelevant
       return;
     }
 
-    // AI mode: Human is always Player 1, AI is always Player 2
-    aiPlayer = 2;
+    aiPlayer = 2; // AI is always player 2
 
     const who = startWhoEl.value;
     if (who==="shuffle"){
-      current = (Math.random() < 0.5) ? 1 : 2;  // who starts (Human or AI)
+      current = (Math.random() < 0.5) ? 1 : 2;
     } else if (who==="ai"){
-      current = 2; // AI starts
+      current = 2;
     } else {
-      current = 1; // Human starts
+      current = 1;
     }
   }
 
@@ -1830,6 +1831,10 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   modeEl.addEventListener("change", () => {
     startWhoEl.disabled = (modeEl.value!=="ai") || started || locked;
     aiSpeedEl.disabled = (modeEl.value!=="ai") || started || locked;
+
+    // NEW: update labels immediately when switching mode
+    updateColorLabels();
+
     syncAll();
   });
 
@@ -1881,14 +1886,8 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (as[0]) as[0].textContent = L.autoShiftOn;
     if (as[1]) as[1].textContent = L.autoShiftOff;
 
-    const aiMode = (modeEl.value === "ai");
-    if (aiMode){
-      p1Label.textContent = (getLang()==="sv") ? "Human färg" : "Human color";
-      p2Label.textContent = (getLang()==="sv") ? "AI färg" : "AI color";
-    } else {
-      p1Label.textContent = L.p1Label;
-      p2Label.textContent = L.p2Label;
-    }
+    // Use requested behavior for color labels
+    updateColorLabels();
 
     helpText.innerHTML = L.helpHtml;
 
