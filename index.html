@@ -509,7 +509,6 @@
         <div class="cardHeader">
           <div>
             <h1 id="gameHeaderTitle">Shift-4</h1>
-            <!-- Removed subtitle line per request -->
           </div>
           <div class="pillWrap" style="display:flex; align-items:center; gap:6px;">
             <button class="btn" id="btnSkip" type="button">Skip</button>
@@ -654,7 +653,6 @@
       reset: "Reset",
       undo: "Undo",
       shift: "Shift",
-      skip: "Hoppa över",
       skip: "Skip",
 
       modeLabel: "Mode",
@@ -688,15 +686,15 @@
       p2Label: "Player 2 / AI color",
 
       beforeStart: "Choose your settings and press Start game.",
-      turn: (p) => `Turn: Player ${p}`,
+      turn: (name) => `Turn: ${name}`,
       draw: "🤝 Draw!\n(Both players have 4 in a row after the Shift)",
       drawNoWin: "🤝 Draw!\n(No one got 4 in a row after the last ball and 5 shifts)",
       finalShifts: "Board is full.\nAuto shifting up to 5 times…",
-      win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
-      stepMove: (p) => `Player ${p}:\nStep 1 (optional): Move one opponent ball to an adjacent empty cell, or press Skip.`,
-      stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nStep 1 is skipped.\nStep 2: Place your ball.`,
-      stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
-      stepShift: (p) => `Player ${p}:\nStep 3: Press Shift (rotate both orbits).`,
+      win: (name) => `🎉 ${name} wins!\n(4 in a row after Shift)`,
+      stepMove: (name) => `${name}:\nStep 1 (optional): Move one opponent ball to an adjacent empty cell, or press Skip.`,
+      stepMoveSkip: (name) => `${name}:\nOpponent has no legal move.\nStep 1 is skipped.\nStep 2: Place your ball.`,
+      stepPlace: (name) => `${name}:\nStep 2: Place your ball on any empty cell.`,
+      stepShift: (name) => `${name}:\nStep 3: Press Shift (rotate both orbits).`,
       aiThinking: "AI is thinking…",
       aiMove: "AI move…",
       undoMsg: "Undone.",
@@ -723,7 +721,6 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       undo: "Ångra",
       shift: "Shift",
       skip: "Hoppa över",
-      skip: "Skip",
 
       modeLabel: "Läge",
       modeAi: "Spela mot AI",
@@ -756,15 +753,15 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       p2Label: "Spelare 2 / AI färg",
 
       beforeStart: "Gör dina inställningar och tryck på Starta spel.",
-      turn: (p) => `Tur: Spelare ${p}`,
+      turn: (name) => `Tur: ${name}`,
       draw: "🤝 Oavgjort!\n(Båda har 4 i rad efter Shift)",
       drawNoWin: "🤝 Oavgjort!\n(Ingen fick 4 i rad efter sista kulan och 5 shiftningar)",
       finalShifts: "Brädet är fullt.\nShiftar automatiskt upp till 5 gånger…",
-      win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
-      stepMove: (p) => `Spelare ${p}:\nSteg 1 (valfritt): Flytta 1 av motståndarens kulor till en tom granne, eller tryck Hoppa över.`,
-      stepMoveSkip: (p) => `Spelare ${p}:\nInget giltigt flytt finns.\nSteg 1 hoppas över.\nSteg 2: Placera din kula.`,
-      stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
-      stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
+      win: (name) => `🎉 ${name} vinner!\n(4 i rad efter Shift)`,
+      stepMove: (name) => `${name}:\nSteg 1 (valfritt): Flytta 1 av motståndarens kulor till en tom granne, eller tryck Hoppa över.`,
+      stepMoveSkip: (name) => `${name}:\nInget giltigt flytt finns.\nSteg 1 hoppas över.\nSteg 2: Placera din kula.`,
+      stepPlace: (name) => `${name}:\nSteg 2: Placera din kula på valfri tom ruta.`,
+      stepShift: (name) => `${name}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
       aiThinking: "AI tänker…",
       aiMove: "AI gör sitt drag…",
       undoMsg: "Ångrat.",
@@ -949,6 +946,15 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   const rcToIdx = (r,c) => r*4+c;
   const other = (p) => p===1?2:1;
 
+  function nameOf(player){
+    // AI mode: Human is always Player 1, AI is always Player 2
+    if (aiEnabled){
+      return (player === 1) ? "Human" : "AI";
+    }
+    // Local PvP: language-dependent label
+    return (getLang()==="sv") ? `Spelare ${player}` : `Player ${player}`;
+  }
+
   function neighbors4(i){
     const [r,c] = idxToRC(i);
     const out=[];
@@ -999,9 +1005,13 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       turnText.textContent = "—";
       return;
     }
-    if (winner===3) turnText.textContent = "—";
-    else if (winner) turnText.textContent = t().turn(winner);
-    else turnText.textContent = t().turn(current);
+    if (winner===3) {
+      turnText.textContent = "—";
+    } else if (winner) {
+      turnText.textContent = t().turn(nameOf(winner));
+    } else {
+      turnText.textContent = t().turn(nameOf(current));
+    }
   }
 
   function opponentHasMove(oppPlayer){
@@ -1240,7 +1250,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       return;
     }
     if (winner){
-      setStatus("ok", L.win(winner));
+      setStatus("ok", L.win(nameOf(winner)));
       return;
     }
 
@@ -1255,18 +1265,18 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       if (!opponentHasMove(opp)){
         if (pieces.size===0){
           phase = "placeOwn";
-          setStatus("", L.stepPlace(current));
+          setStatus("", L.stepPlace(nameOf(current)));
         } else {
           phase = "placeOwn";
-          setStatus("warn", L.stepMoveSkip(current));
+          setStatus("warn", L.stepMoveSkip(nameOf(current)));
         }
       } else {
-        setStatus("", L.stepMove(current));
+        setStatus("", L.stepMove(nameOf(current)));
       }
     } else if (phase==="placeOwn"){
-      setStatus("", L.stepPlace(current));
+      setStatus("", L.stepPlace(nameOf(current)));
     } else {
-      setStatus("warn", L.stepShift(current));
+      setStatus("warn", L.stepShift(nameOf(current)));
     }
   }
 
@@ -1277,7 +1287,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
     btnUndo.disabled = !started || history.length===0 || locked;
     btnSkip.disabled = !started || (phase!=="moveOpp") || winner || locked || (aiEnabled && current===aiPlayer);
-    // If Auto shift is ON, we keep Shift enabled (so you can still press), but it will happen automatically soon.
     btnShift.disabled = !started || (phase!=="shift") || winner || locked;
 
     modeEl.disabled = started || locked;
@@ -1318,7 +1327,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       showOverlay((drawType==="no4") ? L.drawNoWin : L.draw);
       return;
     }
-    showOverlay(L.win(winner));
+    showOverlay(L.win(nameOf(winner)));
   }
 
   function pushHistory(){
@@ -1412,8 +1421,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   function generateActions(player){
     const opp = other(player);
     const oppMoves = [null, ...legalOpponentMoves(opp)];
-    // If no legal moves exist, the list will just contain null
-    if (oppMoves.length===1){}
     const actions=[];
     for (const mv of oppMoves){
       const snap = cloneState();
@@ -1529,7 +1536,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (!started || winner) return;
     if (phase !== "shift") return;
 
-    // Short pause so the player can see the placed ball first.
     autoShiftTimer = setTimeout(() => {
       autoShiftTimer = null;
       performShiftSequence(true);
@@ -1540,7 +1546,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (!started || locked || winner) return;
     if (aiEnabled && current===aiPlayer) return;
     if (phase!=="moveOpp") return;
-    // Skipping does not change the board, but it should be undoable
     pushHistory();
     selectedFrom = null;
     phase = "placeOwn";
@@ -1554,7 +1559,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     const opp = other(current);
 
     if (phase==="endShifts"){
-      setStatus("warn", L.finalShifts);
+      setStatus("warn", t().finalShifts);
       return;
     }
 
@@ -1603,9 +1608,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       layoutBalls(false);
       await waitForTransitions();
 
-      // If the board is full after placing the last ball:
-      // - If someone already has 4 in a row, the game ends immediately.
-      // - Otherwise we auto-shift 5 times (slow enough to see) and check after each shift.
       if (board.every(x => x !== null)){
         await finaleAfterLastPlacement();
         return;
@@ -1614,13 +1616,10 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       phase = "shift";
       syncAll();
 
-      // Auto shift after placing (optional)
       if (autoShiftOn){
-        // prevent double-input spam while auto shift is about to happen
         locked = true;
         syncAll();
         scheduleAutoShift();
-        // locked will be released inside performShiftSequence
       }
       return;
     }
@@ -1634,7 +1633,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   async function finaleAfterLastPlacement(){
     if (!started || winner) return;
 
-    // Lock the game during the finale sequence
     locked = true;
     clearAutoShiftTimer();
     phase = "endShifts";
@@ -1642,7 +1640,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     syncAll();
 
     try{
-      // Check immediately after the last placement (before any shifts)
       let res = checkWinners();
       if (res.winner){
         winner = res.winner;
@@ -1652,7 +1649,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
         return;
       }
 
-      // Auto shift up to 5 times, with pauses so you can see each shift
       const pause = animationsOn ? 520 : 240;
 
       for (let k=0;k<5;k++){
@@ -1672,21 +1668,18 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
         }
       }
 
-      // No winner after 5 shifts => draw
       winner = 3;
       drawType = "no4";
       winLine = null;
       syncAll();
     } finally {
       locked = false;
-      // keep phase as endShifts for status/overlay, doesn't matter after end
       syncAll();
     }
   }
 
   async function performShiftSequence(fromAuto=false){
     if (!started || winner || phase!=="shift") return;
-    // if auto, we may have locked already; ensure locked during execution
     locked = true;
     clearAutoShiftTimer();
     syncAll();
@@ -1710,7 +1703,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
       syncAll();
 
-      // AI turn next
       if (!winner) maybeAIMove();
     } finally {
       locked = false;
@@ -1720,21 +1712,25 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   function configureModeForStart(){
     aiEnabled = (modeEl.value==="ai");
+
     if (!aiEnabled){
-      aiPlayer = 2;
+      // Local PvP: player 1 starts, colors stay Player 1/2
       current = 1;
+      aiPlayer = 2; // irrelevant
       return;
     }
 
+    // AI mode: Human is always Player 1, AI is always Player 2
+    aiPlayer = 2;
+
     const who = startWhoEl.value;
     if (who==="shuffle"){
-      aiPlayer = (Math.random() < 0.5) ? 1 : 2;
+      current = (Math.random() < 0.5) ? 1 : 2;  // who starts (Human or AI)
     } else if (who==="ai"){
-      aiPlayer = 1;
+      current = 2; // AI starts
     } else {
-      aiPlayer = 2;
+      current = 1; // Human starts
     }
-    current = 1;
   }
 
   function setDensity(){
@@ -1885,8 +1881,14 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (as[0]) as[0].textContent = L.autoShiftOn;
     if (as[1]) as[1].textContent = L.autoShiftOff;
 
-    p1Label.textContent = L.p1Label;
-    p2Label.textContent = L.p2Label;
+    const aiMode = (modeEl.value === "ai");
+    if (aiMode){
+      p1Label.textContent = (getLang()==="sv") ? "Human färg" : "Human color";
+      p2Label.textContent = (getLang()==="sv") ? "AI färg" : "AI color";
+    } else {
+      p1Label.textContent = L.p1Label;
+      p2Label.textContent = L.p2Label;
+    }
 
     helpText.innerHTML = L.helpHtml;
 
