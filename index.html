@@ -76,6 +76,16 @@
       --mobileCell: 74px;
       --mobileGap: 10px;
       --mobilePad: 10px;
+
+      /* Stronger highlights (more contrast) */
+      --hintStroke: rgba(110,231,255,0.90);
+      --hintGlow: rgba(110,231,255,0.35);
+      --targetStroke: rgba(167,139,250,0.95);
+      --targetGlow: rgba(167,139,250,0.35);
+      --selectedStroke: rgba(255,255,255,0.92);
+      --selectedGlow: rgba(255,255,255,0.25);
+      --winStroke: rgba(52,211,153,0.95);
+      --winGlow: rgba(52,211,153,0.35);
     }
     :root[data-theme="light"]{
       --bg:#f7f7fb; --bg2:#ffffff;
@@ -93,6 +103,16 @@
       --ms-surface2: rgba(0,0,0,0.02);
       --ms-hi: rgba(255,255,255,0.75);
       --ms-lo: rgba(0,0,0,0.28);
+
+      /* Highlights for light theme */
+      --hintStroke: rgba(14,165,233,0.95);
+      --hintGlow: rgba(14,165,233,0.26);
+      --targetStroke: rgba(124,58,237,0.95);
+      --targetGlow: rgba(124,58,237,0.22);
+      --selectedStroke: rgba(0,0,0,0.70);
+      --selectedGlow: rgba(0,0,0,0.18);
+      --winStroke: rgba(22,163,74,0.92);
+      --winGlow: rgba(22,163,74,0.22);
     }
 
     *{ box-sizing:border-box; }
@@ -191,7 +211,6 @@
       font-size:16px;
       letter-spacing:.2px;
     }
-    .sub{ color: var(--muted); font-size:12px; margin-top:4px; }
 
     .bodyPad{ padding:16px; }
 
@@ -264,6 +283,7 @@
         inset 1px 1px 0 var(--ms-hi),
         inset -1px -1px 0 var(--ms-lo);
       cursor:pointer;
+      transition: box-shadow .15s ease, transform .08s ease, background .15s ease;
     }
     :root[data-theme="light"] .cellBtn{ background: rgba(0,0,0,0.04); }
 
@@ -272,12 +292,36 @@
       box-shadow:
         inset -1px -1px 0 var(--ms-hi),
         inset 1px 1px 0 var(--ms-lo);
+      transform: translateY(1px);
     }
 
-    .hint{ outline: 2px solid rgba(110,231,255,0.30); outline-offset: 2px; }
-    .target{ outline: 2px solid rgba(167,139,250,0.32); outline-offset: 2px; }
-    .selected{ outline: 2px solid rgba(255,255,255,0.55); outline-offset: 2px; }
-    .win{ outline: 3px solid rgba(52,211,153,0.85); outline-offset: 2px; }
+    /* Stronger state highlights */
+    .hint{
+      outline: 3px solid var(--hintStroke);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px var(--hintGlow);
+      background: rgba(110,231,255,0.06);
+    }
+    .target{
+      outline: 3px solid var(--targetStroke);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px var(--targetGlow);
+      background: rgba(167,139,250,0.06);
+    }
+    .selected{
+      outline: 3px solid var(--selectedStroke);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px var(--selectedGlow);
+      background: rgba(255,255,255,0.06);
+    }
+    .win{
+      outline: 4px solid var(--winStroke);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 8px var(--winGlow);
+    }
+    :root[data-theme="light"] .hint{ background: rgba(14,165,233,0.09); }
+    :root[data-theme="light"] .target{ background: rgba(124,58,237,0.08); }
+    :root[data-theme="light"] .selected{ background: rgba(0,0,0,0.05); }
 
     .ballsLayer{
       position:absolute;
@@ -420,7 +464,7 @@
         <div class="cardHeader">
           <div>
             <h1 id="gameHeaderTitle">Shift-4</h1>
-            <div class="sub" id="gameHeaderSub">Move • Place • Shift. Win is checked after Shift.</div>
+            <!-- Removed subtitle line per request -->
           </div>
           <div class="pill" id="turnPill">
             <span class="dot" id="turnDot"></span>
@@ -493,24 +537,28 @@
             </div>
 
             <div style="flex:1; min-width: 150px;">
-              <label id="p1Label" for="p1Color">Player 1 color</label>
-              <select id="p1Color"></select>
+              <label id="autoShiftLabel" for="autoShift">Auto shift</label>
+              <select id="autoShift">
+                <option value="on" selected>On</option>
+                <option value="off">Off</option>
+              </select>
             </div>
           </div>
 
           <div class="row">
             <div style="flex:1; min-width: 150px;">
-              <label id="p2Label" for="p2Color">Player 2 / AI color</label>
-              <select id="p2Color"></select>
+              <label id="p1Label" for="p1Color">Player 1 color</label>
+              <select id="p1Color"></select>
             </div>
 
             <div style="flex:1; min-width: 150px;">
-              <label>&nbsp;</label>
-              <button class="btn" id="btnNew" type="button" disabled>New game</button>
+              <label id="p2Label" for="p2Color">Player 2 / AI color</label>
+              <select id="p2Color"></select>
             </div>
           </div>
 
           <div class="row" style="align-items:center;">
+            <button class="btn" id="btnNew" type="button" disabled>New game</button>
             <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
             <button class="btn primary" id="btnShift" type="button" disabled>Shift</button>
             <button class="btn danger" id="btnReset" type="button" disabled>Reset</button>
@@ -551,7 +599,6 @@
     en: {
       home: "← Main menu",
       appSubtitle: "Orbits • 4-in-a-row • Dark/Light",
-      gameHeaderSub: "Move • Place • Shift. Win is checked after Shift.",
       settingsTitle: "Settings",
       startGame: "Start game",
       newGame: "New game",
@@ -582,6 +629,10 @@
       densityCozy: "Cozy",
       densityCompact: "Compact",
 
+      autoShiftLabel: "Auto shift",
+      autoShiftOn: "On",
+      autoShiftOff: "Off",
+
       p1Label: "Player 1 color",
       p2Label: "Player 2 / AI color",
 
@@ -602,7 +653,7 @@
 Each turn has <b>3 steps</b>:<br/>
 1) <b>Move</b> one of your opponent’s balls to a neighboring empty cell (up/down/left/right) if possible.<br/>
 2) <b>Place</b> one of your own balls on any empty cell.<br/>
-3) Press <kbd>Shift</kbd> to <b>rotate both orbits</b> one step. The outer ring and the inner ring rotate at the same time.<br/><br/>
+3) <b>Shift</b>: rotate both orbits one step. The outer ring and the inner ring rotate at the same time.<br/><br/>
 <b>Win / Draw</b><br/>
 After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, or diagonal).<br/>
 • If only one player has 4 in a row: that player wins.<br/>
@@ -612,7 +663,6 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
     sv: {
       home: "← Huvudmeny",
       appSubtitle: "Orbits • 4-i-rad • Mörk/Ljus",
-      gameHeaderSub: "Flytta • Placera • Shift. Vinst kollas efter Shift.",
       settingsTitle: "Inställningar",
       startGame: "Starta spel",
       newGame: "Nytt spel",
@@ -643,6 +693,10 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       densityCozy: "Mellan",
       densityCompact: "Kompakt",
 
+      autoShiftLabel: "Auto shift",
+      autoShiftOn: "På",
+      autoShiftOff: "Av",
+
       p1Label: "Spelare 1 färg",
       p2Label: "Spelare 2 / AI färg",
 
@@ -663,7 +717,7 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
 Varje tur har <b>3 steg</b>:<br/>
 1) <b>Flytta</b> 1 av motståndarens kulor till en tom granne (upp/ner/vänster/höger) om möjligt.<br/>
 2) <b>Placera</b> 1 av dina egna kulor på valfri tom ruta.<br/>
-3) Tryck <kbd>Shift</kbd> för att <b>rotera båda orbits</b> ett steg. Yttre ringen och inre ringen roterar samtidigt.<br/><br/>
+3) <b>Shift</b>: rotera båda orbits ett steg. Yttre ringen och inre ringen roterar samtidigt.<br/><br/>
 <b>Vinst / Oavgjort</b><br/>
 Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt).<br/>
 • Om bara en spelare har 4 i rad: den spelaren vinner.<br/>
@@ -685,7 +739,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   const homeBtn = document.getElementById("homeBtn");
   const appSubtitle = document.getElementById("appSubtitle");
-  const gameHeaderSub = document.getElementById("gameHeaderSub");
   const settingsTitle = document.getElementById("settingsTitle");
 
   const modeLabel = document.getElementById("modeLabel");
@@ -702,6 +755,9 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   const densityLabel = document.getElementById("densityLabel");
   const densityEl = document.getElementById("density");
+
+  const autoShiftLabel = document.getElementById("autoShiftLabel");
+  const autoShiftEl = document.getElementById("autoShift");
 
   const p1Label = document.getElementById("p1Label");
   const p2Label = document.getElementById("p2Label");
@@ -826,6 +882,8 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   let aiBusy = false;
 
   let animationsOn = true;
+  let autoShiftOn = true;
+  let autoShiftTimer = null;
 
   const idxToRC = (i) => [Math.floor(i/4), i%4];
   const rcToIdx = (r,c) => r*4+c;
@@ -1135,6 +1193,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     btnReset.disabled = !started || locked;
 
     btnUndo.disabled = !started || history.length===0 || locked;
+    // If Auto shift is ON, we keep Shift enabled (so you can still press), but it will happen automatically soon.
     btnShift.disabled = !started || (phase!=="shift") || winner || locked;
 
     modeEl.disabled = started || locked;
@@ -1142,6 +1201,8 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     aiSpeedEl.disabled = started || locked || (modeEl.value!=="ai");
     animEl.disabled = started || locked;
     densityEl.disabled = started || locked;
+    autoShiftEl.disabled = started || locked;
+
     p1ColorEl.disabled = started || locked;
     p2ColorEl.disabled = started || locked;
   }
@@ -1171,6 +1232,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   function undo(){
     if (!started || history.length===0 || locked) return;
+    clearAutoShiftTimer();
     const s = history.pop();
     board = s.board;
     pieces = new Map(s.pieces);
@@ -1284,6 +1346,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
     aiBusy = true;
     locked = true;
+    clearAutoShiftTimer();
     syncAll();
 
     const {think, step} = aiDelays();
@@ -1341,6 +1404,26 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }
   }
 
+  function clearAutoShiftTimer(){
+    if (autoShiftTimer){
+      clearTimeout(autoShiftTimer);
+      autoShiftTimer = null;
+    }
+  }
+
+  function scheduleAutoShift(){
+    clearAutoShiftTimer();
+    if (!autoShiftOn) return;
+    if (!started || winner) return;
+    if (phase !== "shift") return;
+
+    // Short pause so the player can see the placed ball first.
+    autoShiftTimer = setTimeout(() => {
+      autoShiftTimer = null;
+      performShiftSequence(true);
+    }, animationsOn ? 420 : 240);
+  }
+
   async function onCellClick(i){
     if (!started || locked || winner) return;
     if (aiEnabled && current===aiPlayer) return;
@@ -1394,34 +1477,54 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
       phase = "shift";
       syncAll();
+
+      // Auto shift after placing (optional)
+      if (autoShiftOn){
+        // prevent double-input spam while auto shift is about to happen
+        locked = true;
+        syncAll();
+        scheduleAutoShift();
+        // locked will be released inside performShiftSequence
+      }
       return;
     }
 
     if (phase==="shift"){
-      await performShiftSequence();
+      await performShiftSequence(false);
     }
   }
 
-  async function performShiftSequence(){
-    if (!started || locked || winner || phase!=="shift") return;
-
-    pushHistory();
-    doShift();
-    layoutBalls(false);
-    await waitForTransitions();
-
-    const res = checkWinners();
-    winner = res.winner;
-    winLine = res.line;
-
-    if (!winner){
-      current = other(current);
-      phase = "moveOpp";
-      selectedFrom = null;
-    }
-
+  async function performShiftSequence(fromAuto=false){
+    if (!started || winner || phase!=="shift") return;
+    // if auto, we may have locked already; ensure locked during execution
+    locked = true;
+    clearAutoShiftTimer();
     syncAll();
-    maybeAIMove();
+
+    try{
+      pushHistory();
+      doShift();
+      layoutBalls(false);
+      await waitForTransitions();
+
+      const res = checkWinners();
+      winner = res.winner;
+      winLine = res.line;
+
+      if (!winner){
+        current = other(current);
+        phase = "moveOpp";
+        selectedFrom = null;
+      }
+
+      syncAll();
+
+      // AI turn next
+      if (!winner) maybeAIMove();
+    } finally {
+      locked = false;
+      syncAll();
+    }
   }
 
   function configureModeForStart(){
@@ -1458,6 +1561,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     history = [];
     selectedFrom = null;
     phase = "moveOpp";
+    clearAutoShiftTimer();
   }
 
   function startGame(){
@@ -1466,6 +1570,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     aiBusy = false;
 
     animationsOn = (animEl.value==="on");
+    autoShiftOn = (autoShiftEl.value==="on");
     setDensity();
 
     hardResetBoard();
@@ -1501,7 +1606,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   btnNew.addEventListener("click", newGameSameSettings);
   btnReset.addEventListener("click", resetToSetup);
   btnUndo.addEventListener("click", undo);
-  btnShift.addEventListener("click", () => performShiftSequence());
+  btnShift.addEventListener("click", () => performShiftSequence(false));
 
   aiSpeedEl.addEventListener("change", () => localStorage.setItem("shift4_aiSpeed", aiSpeedEl.value));
 
@@ -1510,6 +1615,12 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     animationsOn = (animEl.value==="on");
     localStorage.setItem("shift4_anim", animEl.value);
     layoutBalls(true);
+  });
+
+  autoShiftEl.addEventListener("change", () => {
+    if (started) return;
+    autoShiftOn = (autoShiftEl.value==="on");
+    localStorage.setItem("shift4_autoshift", autoShiftEl.value);
   });
 
   densityEl.addEventListener("change", () => {
@@ -1539,7 +1650,6 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     const L = t();
     homeBtn.textContent = L.home;
     appSubtitle.textContent = L.appSubtitle;
-    gameHeaderSub.textContent = L.gameHeaderSub;
 
     settingsTitle.textContent = L.settingsTitle;
     btnStart.textContent = L.startGame;
@@ -1576,6 +1686,11 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     if (dn[1]) dn[1].textContent = L.densityCozy;
     if (dn[2]) dn[2].textContent = L.densityCompact;
 
+    autoShiftLabel.textContent = L.autoShiftLabel;
+    const as = autoShiftEl.querySelectorAll("option");
+    if (as[0]) as[0].textContent = L.autoShiftOn;
+    if (as[1]) as[1].textContent = L.autoShiftOff;
+
     p1Label.textContent = L.p1Label;
     p2Label.textContent = L.p2Label;
 
@@ -1598,6 +1713,10 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     const savedAnim = localStorage.getItem("shift4_anim");
     if (savedAnim) animEl.value = savedAnim;
     animationsOn = (animEl.value==="on");
+
+    const savedAutoShift = localStorage.getItem("shift4_autoshift");
+    if (savedAutoShift) autoShiftEl.value = savedAutoShift;
+    autoShiftOn = (autoShiftEl.value==="on");
 
     const savedDensity = localStorage.getItem("shift4_density");
     if (savedDensity) densityEl.value = savedDensity;
