@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Shift-4 (SV/EN) | Simple Tools</title>
-  <meta name="description" content="Play Shift-4 (Orbito-style) online with dark/light theme, Swedish/English, local multiplayer or AI, custom ball colors, animations, and mobile-friendly layout." />
+  <title>Shift-4 | Simple Tools</title>
+  <meta name="description" content="Play Shift-4 (Orbito-style) online with dark/light theme, Swedish/English, local multiplayer or AI, and custom ball colors." />
 
   <link rel="canonical" href="https://simple-tools-dev.github.io/shift-4/" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -13,12 +13,12 @@
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Simple Tools" />
-  <meta property="og:title" content="Shift-4 (SV/EN)" />
+  <meta property="og:title" content="Shift-4" />
   <meta property="og:description" content="Orbito-style 4-in-a-row with shifting orbits. Play vs AI or a friend." />
   <meta property="og:url" content="https://simple-tools-dev.github.io/shift-4/" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Shift-4 (SV/EN)" />
+  <meta name="twitter:title" content="Shift-4" />
   <meta name="twitter:description" content="Orbito-style 4-in-a-row with shifting orbits. Play vs AI or a friend." />
 
   <link rel="alternate" hreflang="en" href="https://simple-tools-dev.github.io/shift-4/" />
@@ -49,7 +49,6 @@
           async src="//gc.zgo.at/count.js"></script>
 
   <style>
-    /* ===== Same variables as Minesweeper ===== */
     :root{
       --bg:#0b0f14; --bg2:#0e1520;
       --card: rgba(255,255,255,0.06);
@@ -65,16 +64,18 @@
       --warn: #fbbf24;
       --bad: #fb7185;
 
-      /* Minesweeper-ish bevel palette */
       --ms-surface: rgba(255,255,255,0.05);
       --ms-surface2: rgba(255,255,255,0.03);
       --ms-hi: rgba(255,255,255,0.16);
       --ms-lo: rgba(0,0,0,0.55);
 
-      /* Shift-4 sizing (desktop defaults) */
       --cell: 104px;
       --gap: 12px;
       --pad: 10px;
+
+      --mobileCell: 74px;
+      --mobileGap: 10px;
+      --mobilePad: 10px;
     }
     :root[data-theme="light"]{
       --bg:#f7f7fb; --bg2:#ffffff;
@@ -92,26 +93,6 @@
       --ms-surface2: rgba(0,0,0,0.02);
       --ms-hi: rgba(255,255,255,0.75);
       --ms-lo: rgba(0,0,0,0.28);
-    }
-
-    /* Optional layout modes (Auto chooses via JS) */
-    :root[data-layout="compact"]{ --cell: 76px; --gap: 10px; --pad: 8px; }
-    :root[data-layout="cozy"]{ --cell: 96px; --gap: 12px; --pad: 10px; }
-
-    /* Mobile automatic fallback (still overrideable by layout select) */
-    @media (max-width: 520px){
-      :root:not([data-layout="compact"]):not([data-layout="cozy"]){
-        --cell: 78px;
-        --gap: 10px;
-        --pad: 8px;
-      }
-    }
-    @media (max-width: 380px){
-      :root:not([data-layout="compact"]):not([data-layout="cozy"]){
-        --cell: 66px;
-        --gap: 8px;
-        --pad: 8px;
-      }
     }
 
     *{ box-sizing:border-box; }
@@ -180,7 +161,7 @@
 
     .grid{
       display:grid;
-      grid-template-columns: 1fr 360px; /* original layout */
+      grid-template-columns: 1fr 360px;
       gap:18px;
       align-items:start;
     }
@@ -214,7 +195,6 @@
 
     .bodyPad{ padding:16px; }
 
-    /* Board shell */
     .msPanel{
       background: linear-gradient(180deg, var(--ms-surface), var(--ms-surface2));
       border: 1px solid var(--border);
@@ -260,6 +240,20 @@
       border-color: rgba(0,0,0,0.10);
     }
 
+    .board[data-density="cozy"]{
+      --cell: 90px;
+      --gap: 10px;
+      --pad: 10px;
+    }
+    .board[data-density="compact"]{
+      --cell: var(--mobileCell);
+      --gap: var(--mobileGap);
+      --pad: var(--mobilePad);
+    }
+    @media (max-width: 460px){
+      .board{ --cell: var(--mobileCell); --gap: var(--mobileGap); --pad: var(--mobilePad); }
+    }
+
     .cellBtn{
       width: var(--cell);
       height: var(--cell);
@@ -285,7 +279,6 @@
     .selected{ outline: 2px solid rgba(255,255,255,0.55); outline-offset: 2px; }
     .win{ outline: 3px solid rgba(52,211,153,0.85); outline-offset: 2px; }
 
-    /* Balls overlay */
     .ballsLayer{
       position:absolute;
       left: var(--pad);
@@ -328,7 +321,6 @@
       100%{ transform: translate(var(--x), var(--y)) scale(1); opacity:1; }
     }
 
-    /* Side panel controls */
     .panel{ padding:16px; display:flex; flex-direction:column; gap:12px; }
     .row{ display:flex; gap:10px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
     label{ font-size:12px; color: var(--muted); }
@@ -367,7 +359,6 @@
       font-size: 13px;
       color: var(--text);
       user-select:none;
-      white-space:nowrap;
     }
     :root[data-theme="light"] .pill{ background: rgba(0,0,0,0.03); }
 
@@ -382,7 +373,7 @@
       margin-top: 6px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.35;
+      line-height: 1.45;
     }
     kbd{
       background: rgba(255,255,255,0.06);
@@ -407,7 +398,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div id="appTitle">Shift-4</div>
-          <div class="small" id="appSubtitle">Orbits • 4-in-a-row • SV/EN • Dark/Light</div>
+          <div class="small" id="appSubtitle">Orbits • 4-in-a-row • Dark/Light</div>
         </div>
       </div>
 
@@ -425,7 +416,6 @@
     </div>
 
     <div class="grid">
-      <!-- LEFT: game (original layout) -->
       <section class="card">
         <div class="cardHeader">
           <div>
@@ -441,19 +431,16 @@
         <div class="bodyPad">
           <div class="msPanel bevel">
             <div class="boardWrap">
-              <div class="board" id="board" aria-label="Board 4x4">
-                <!-- cells + balls injected -->
-              </div>
+              <div class="board" id="board" aria-label="Board 4x4" data-density="auto"></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- RIGHT: settings -->
       <aside class="card">
         <div class="cardHeader">
           <h2 id="settingsTitle">Settings</h2>
-          <button class="btn secondary" id="btnNew" type="button">New game</button>
+          <button class="btn primary" id="btnStart" type="button">Start game</button>
         </div>
 
         <div class="panel">
@@ -461,16 +448,17 @@
             <div style="flex:1; min-width: 150px;">
               <label id="modeLabel" for="mode">Mode</label>
               <select id="mode">
+                <option value="ai" selected>Play vs AI</option>
                 <option value="pvp">Play vs friend (local)</option>
-                <option value="ai">Play vs AI</option>
               </select>
             </div>
 
             <div style="flex:1; min-width: 150px;">
-              <label id="aiFirstLabel" for="aiFirst">In AI mode</label>
-              <select id="aiFirst">
-                <option value="humanFirst">You start</option>
-                <option value="aiFirst">AI starts</option>
+              <label id="startLabel" for="startWho">Who starts</label>
+              <select id="startWho">
+                <option value="shuffle" selected>Shuffle</option>
+                <option value="human">You start</option>
+                <option value="ai">AI starts</option>
               </select>
             </div>
           </div>
@@ -496,11 +484,11 @@
 
           <div class="row">
             <div style="flex:1; min-width: 150px;">
-              <label id="layoutLabel" for="layout">Layout</label>
-              <select id="layout">
+              <label id="densityLabel" for="density">Board size</label>
+              <select id="density">
                 <option value="auto" selected>Auto</option>
                 <option value="cozy">Cozy</option>
-                <option value="compact">Compact (mobile)</option>
+                <option value="compact">Compact</option>
               </select>
             </div>
 
@@ -516,29 +504,20 @@
               <select id="p2Color"></select>
             </div>
 
-            <div style="flex:1; min-width: 150px; display:flex; justify-content:flex-end;">
-              <div style="width:100%">
-                <label style="visibility:hidden">x</label>
-                <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
-              </div>
+            <div style="flex:1; min-width: 150px;">
+              <label>&nbsp;</label>
+              <button class="btn" id="btnNew" type="button" disabled>New game</button>
             </div>
           </div>
 
           <div class="row" style="align-items:center;">
+            <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
             <button class="btn primary" id="btnShift" type="button" disabled>Shift</button>
-            <button class="btn danger" id="btnReset" type="button">Reset</button>
+            <button class="btn danger" id="btnReset" type="button" disabled>Reset</button>
           </div>
 
           <div class="status" id="status">—</div>
-
-          <div class="help" id="helpText">
-            <b>Turn steps</b><br/>
-            1) Move one opponent ball to an adjacent empty cell (if possible)<br/>
-            2) Place your own ball on any empty cell<br/>
-            3) Press <kbd>Shift</kbd> to rotate both orbits one step<br/><br/>
-            <b>Rules / Win</b><br/>
-            You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.
-          </div>
+          <div class="help" id="helpText"></div>
         </div>
       </aside>
     </div>
@@ -548,7 +527,6 @@
 (() => {
   const root = document.documentElement;
 
-  // ===== Theme (same behavior as Minesweeper) =====
   const themeBtn = document.getElementById("themeBtn");
   const themeIcon = document.getElementById("themeIcon");
   const themeText = document.getElementById("themeText");
@@ -569,47 +547,26 @@
     layoutBalls(true);
   });
 
-  // ===== Layout (auto/cozy/compact) =====
-  const layoutEl = document.getElementById("layout");
-  const savedLayout = localStorage.getItem("shift4_layout") || "auto";
-  layoutEl.value = savedLayout;
-
-  function applyLayout(mode){
-    if (mode === "auto"){
-      root.removeAttribute("data-layout");
-    } else {
-      root.setAttribute("data-layout", mode);
-    }
-    localStorage.setItem("shift4_layout", mode);
-    // re-layout balls because CSS variables may change sizes
-    requestAnimationFrame(()=>layoutBalls(true));
-  }
-
-  // If auto: still adapt to resize
-  function autoLayoutTick(){
-    if (layoutEl.value !== "auto") return;
-    // no attribute => CSS media queries decide; just relayout balls
-    layoutBalls(true);
-  }
-
-  // ===== i18n =====
   const I18N = {
     en: {
       home: "← Main menu",
-      appSubtitle: "Orbits • 4-in-a-row • SV/EN • Dark/Light",
+      appSubtitle: "Orbits • 4-in-a-row • Dark/Light",
       gameHeaderSub: "Move • Place • Shift. Win is checked after Shift.",
       settingsTitle: "Settings",
+      startGame: "Start game",
       newGame: "New game",
       reset: "Reset",
       undo: "Undo",
       shift: "Shift",
 
       modeLabel: "Mode",
-      modePvp: "Play vs friend (local)",
       modeAi: "Play vs AI",
-      aiFirstLabel: "In AI mode",
-      humanFirst: "You start",
-      aiFirst: "AI starts",
+      modePvp: "Play vs friend (local)",
+
+      startLabel: "Who starts",
+      startShuffle: "Shuffle",
+      startHuman: "You start",
+      startAi: "AI starts",
 
       aiSpeedLabel: "AI speed",
       speedFast: "Fast",
@@ -620,50 +577,57 @@
       animOn: "On",
       animOff: "Off",
 
-      layoutLabel: "Layout",
-      layoutAuto: "Auto",
-      layoutCozy: "Cozy",
-      layoutCompact: "Compact (mobile)",
+      densityLabel: "Board size",
+      densityAuto: "Auto",
+      densityCozy: "Cozy",
+      densityCompact: "Compact",
 
       p1Label: "Player 1 color",
       p2Label: "Player 2 / AI color",
 
+      beforeStart: "Choose your settings and press Start game.",
       turn: (p) => `Turn: Player ${p}`,
+      draw: "🤝 Draw!\n(Both players have 4 in a row after the Shift)",
       win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
-      draw: `🤝 Draw!\n(Both got 4 in a row after Shift)`,
       stepMove: (p) => `Player ${p}:\nStep 1: Move one opponent ball to an adjacent empty cell.`,
       stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nSkip to Step 2: Place your ball.`,
       stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
       stepShift: (p) => `Player ${p}:\nStep 3: Press Shift (rotate both orbits).`,
       aiThinking: "AI is thinking…",
       aiMove: "AI move…",
+      undoMsg: "Undone.",
 
       helpHtml: `
-<b>Turn steps</b><br/>
-1) Move one opponent ball to an adjacent empty cell (if possible)<br/>
-2) Place your own ball on any empty cell<br/>
-3) Press <kbd>Shift</kbd> to rotate both orbits one step<br/><br/>
-<b>Rules / Win</b><br/>
-You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.<br/>
-If <b>both</b> players have 4-in-a-row after the same Shift, the game is a <b>draw</b>.
+<b>How to play</b><br/>
+Each turn has <b>3 steps</b>:<br/>
+1) <b>Move</b> one of your opponent’s balls to a neighboring empty cell (up/down/left/right) if possible.<br/>
+2) <b>Place</b> one of your own balls on any empty cell.<br/>
+3) Press <kbd>Shift</kbd> to <b>rotate both orbits</b> one step. The outer ring and the inner ring rotate at the same time.<br/><br/>
+<b>Win / Draw</b><br/>
+After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, or diagonal).<br/>
+• If only one player has 4 in a row: that player wins.<br/>
+• If <b>both</b> players have 4 in a row at the same time: it is a <b>draw</b>.
       `.trim(),
     },
     sv: {
       home: "← Huvudmeny",
-      appSubtitle: "Orbits • 4-i-rad • SV/EN • Mörk/Ljus",
+      appSubtitle: "Orbits • 4-i-rad • Mörk/Ljus",
       gameHeaderSub: "Flytta • Placera • Shift. Vinst kollas efter Shift.",
       settingsTitle: "Inställningar",
+      startGame: "Starta spel",
       newGame: "Nytt spel",
       reset: "Återställ",
       undo: "Ångra",
       shift: "Shift",
 
       modeLabel: "Läge",
-      modePvp: "Spela mot vän (lokalt)",
       modeAi: "Spela mot AI",
-      aiFirstLabel: "I AI-läge",
-      humanFirst: "Du börjar",
-      aiFirst: "AI börjar",
+      modePvp: "Spela mot vän (lokalt)",
+
+      startLabel: "Vem börjar",
+      startShuffle: "Slumpa",
+      startHuman: "Du börjar",
+      startAi: "AI börjar",
 
       aiSpeedLabel: "AI-hastighet",
       speedFast: "Snabb",
@@ -674,32 +638,36 @@ If <b>both</b> players have 4-in-a-row after the same Shift, the game is a <b>dr
       animOn: "På",
       animOff: "Av",
 
-      layoutLabel: "Layout",
-      layoutAuto: "Auto",
-      layoutCozy: "Cozy",
-      layoutCompact: "Kompakt (mobil)",
+      densityLabel: "Brädstorlek",
+      densityAuto: "Auto",
+      densityCozy: "Mellan",
+      densityCompact: "Kompakt",
 
       p1Label: "Spelare 1 färg",
       p2Label: "Spelare 2 / AI färg",
 
+      beforeStart: "Gör dina inställningar och tryck på Starta spel.",
       turn: (p) => `Tur: Spelare ${p}`,
+      draw: "🤝 Oavgjort!\n(Båda har 4 i rad efter Shift)",
       win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
-      draw: `🤝 Oavgjort!\n(Båda fick 4 i rad efter Shift)`,
-      stepMove: (p) => `Spelare ${p}:\nSteg 1: Flytta en av motståndarens kulor till en tom granne.`,
+      stepMove: (p) => `Spelare ${p}:\nSteg 1: Flytta 1 av motståndarens kulor till en tom granne.`,
       stepMoveSkip: (p) => `Spelare ${p}:\nMotståndaren kan inte flyttas.\nHoppa till Steg 2: Placera din kula.`,
       stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
-      stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits).`,
+      stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
       aiThinking: "AI tänker…",
       aiMove: "AI gör sitt drag…",
+      undoMsg: "Ångrat.",
 
       helpHtml: `
-<b>Turens steg</b><br/>
-1) Flytta 1 av motståndarens kulor till en tom granne (om möjligt)<br/>
-2) Placera din egen kula på valfri tom ruta<br/>
-3) Tryck <kbd>Shift</kbd> för att rotera båda orbits ett steg<br/><br/>
-<b>Regler / Vinst</b><br/>
-Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>efter</b> Shift.<br/>
-Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
+<b>Så spelar du</b><br/>
+Varje tur har <b>3 steg</b>:<br/>
+1) <b>Flytta</b> 1 av motståndarens kulor till en tom granne (upp/ner/vänster/höger) om möjligt.<br/>
+2) <b>Placera</b> 1 av dina egna kulor på valfri tom ruta.<br/>
+3) Tryck <kbd>Shift</kbd> för att <b>rotera båda orbits</b> ett steg. Yttre ringen och inre ringen roterar samtidigt.<br/><br/>
+<b>Vinst / Oavgjort</b><br/>
+Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt).<br/>
+• Om bara en spelare har 4 i rad: den spelaren vinner.<br/>
+• Om <b>båda</b> har 4 i rad samtidigt: det blir <b>oavgjort</b>.
       `.trim(),
     }
   };
@@ -721,21 +689,27 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   const settingsTitle = document.getElementById("settingsTitle");
 
   const modeLabel = document.getElementById("modeLabel");
-  const aiFirstLabel = document.getElementById("aiFirstLabel");
+  const modeEl = document.getElementById("mode");
+
+  const startLabel = document.getElementById("startLabel");
+  const startWhoEl = document.getElementById("startWho");
+
   const aiSpeedLabel = document.getElementById("aiSpeedLabel");
+  const aiSpeedEl = document.getElementById("aiSpeed");
+
   const animLabel = document.getElementById("animLabel");
-  const layoutLabel = document.getElementById("layoutLabel");
+  const animEl = document.getElementById("anim");
+
+  const densityLabel = document.getElementById("densityLabel");
+  const densityEl = document.getElementById("density");
+
   const p1Label = document.getElementById("p1Label");
   const p2Label = document.getElementById("p2Label");
-
-  const modeEl = document.getElementById("mode");
-  const aiFirstEl = document.getElementById("aiFirst");
-  const aiSpeedEl = document.getElementById("aiSpeed");
-  const animEl = document.getElementById("anim");
 
   const p1ColorEl = document.getElementById("p1Color");
   const p2ColorEl = document.getElementById("p2Color");
 
+  const btnStart = document.getElementById("btnStart");
   const btnNew = document.getElementById("btnNew");
   const btnReset = document.getElementById("btnReset");
   const btnUndo = document.getElementById("btnUndo");
@@ -747,7 +721,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   const turnDot = document.getElementById("turnDot");
   const turnText = document.getElementById("turnText");
 
-  // ===== Colors =====
   const COLORS = [
     { en:"Red",    sv:"Röd",    hex:"#ff4d4d" },
     { en:"Blue",   sv:"Blå",    hex:"#4d7cff" },
@@ -779,7 +752,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
       p2ColorEl.appendChild(o2);
     }
 
-    // restore saved
     const savedP1 = localStorage.getItem("shift4_p1Color");
     const savedP2 = localStorage.getItem("shift4_p2Color");
     let i1 = savedP1 ? COLORS.findIndex(x=>x.hex===savedP1) : (s1>=0?s1:0);
@@ -821,12 +793,10 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     updateTurnPill();
   }
 
-  // ===== Board / animation model =====
   const boardEl = document.getElementById("board");
   let cells = [];
   let ballsLayer = null;
 
-  // Rings CCW
   const OUTER = [0,1,2,3,7,11,15,14,13,12,8,4];
   const INNER = [5,6,10,9];
 
@@ -836,31 +806,27 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     [0,5,10,15],[3,6,9,12]
   ];
 
-  // board holds pieceId or null
   let board = Array(16).fill(null);
-  let pieces = new Map(); // id -> {id, player}
+  let pieces = new Map();
   let nextPieceId = 1;
 
   let current = 1;
-  let phase = "moveOpp"; // moveOpp, placeOwn, shift
+  let phase = "moveOpp";
   let selectedFrom = null;
 
-  // winner: 0 none, 1/2 winner, -1 draw
-  let winner = 0;
+  let winner = 0; // 0 none, 1/2 win, 3 draw
   let winLine = null;
 
   let history = [];
   let locked = false;
+  let started = false;
 
-  // AI
-  let aiEnabled = false;
+  let aiEnabled = true;
   let aiPlayer = 2;
   let aiBusy = false;
 
-  // Animations
   let animationsOn = true;
 
-  // ===== Helpers =====
   const idxToRC = (i) => [Math.floor(i/4), i%4];
   const rcToIdx = (r,c) => r*4+c;
   const other = (p) => p===1?2:1;
@@ -876,8 +842,8 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function cellXY(i){
-    const cs = parseFloat(getComputedStyle(root).getPropertyValue("--cell")) || 104;
-    const gap = parseFloat(getComputedStyle(root).getPropertyValue("--gap")) || 12;
+    const cs = parseFloat(getComputedStyle(boardEl).getPropertyValue("--cell")) || 104;
+    const gap = parseFloat(getComputedStyle(boardEl).getPropertyValue("--gap")) || 12;
     const [r,c] = idxToRC(i);
     return { x: c*(cs+gap), y: r*(cs+gap) };
   }
@@ -890,17 +856,15 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   function updateTurnPill(){
     const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
     const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
-
-    if (winner === -1){
-      turnDot.style.setProperty("--c", "#cbd5e1");
-      turnText.textContent = getLang()==="sv" ? "Oavgjort" : "Draw";
-      return;
-    }
-
     const hex = current===1 ? p1Hex : p2Hex;
     turnDot.style.setProperty("--c", hex);
 
-    if (winner === 1 || winner === 2) turnText.textContent = t().turn(winner);
+    if (!started){
+      turnText.textContent = "—";
+      return;
+    }
+    if (winner===3) turnText.textContent = "—";
+    else if (winner) turnText.textContent = t().turn(winner);
     else turnText.textContent = t().turn(current);
   }
 
@@ -927,32 +891,22 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     return moves;
   }
 
-  function lineWinner(line){
-    const a = board[line[0]];
-    if (!a) return 0;
-    const pa = pieces.get(a)?.player;
-    if (!pa) return 0;
-    if (line.every(i => board[i] && pieces.get(board[i])?.player===pa)) return pa;
-    return 0;
-  }
-
-  function checkOutcome(){
-    // Returns:
-    // { outcome: 0/1/2/-1, line: one winning line if single winner, both: {p1Line,p2Line} if draw }
-    let p1Line = null;
-    let p2Line = null;
-
+  function checkWinners(){
+    let w1 = false, w2 = false;
     for (const line of LINES){
-      const w = lineWinner(line);
-      if (w === 1 && !p1Line) p1Line = line;
-      if (w === 2 && !p2Line) p2Line = line;
-      if (p1Line && p2Line) break;
+      const a = board[line[0]];
+      if (!a) continue;
+      const pa = pieces.get(a)?.player;
+      if (!pa) continue;
+      if (line.every(i => board[i] && pieces.get(board[i])?.player===pa)){
+        if (pa===1) w1 = true;
+        if (pa===2) w2 = true;
+      }
     }
-
-    if (p1Line && p2Line) return { outcome: -1, line: null, both: {p1Line, p2Line} };
-    if (p1Line) return { outcome: 1, line: p1Line, both: null };
-    if (p2Line) return { outcome: 2, line: p2Line, both: null };
-    return { outcome: 0, line: null, both: null };
+    if (w1 && w2) return {winner: 3, line: null};
+    if (w1) return {winner: 1, line: null};
+    if (w2) return {winner: 2, line: null};
+    return {winner: 0, line: null};
   }
 
   function rotateRing(ring){
@@ -966,7 +920,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     rotateRing(INNER);
   }
 
-  // ===== DOM build / balls =====
   function buildBoard(){
     boardEl.innerHTML = "";
     cells = [];
@@ -1008,6 +961,7 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function repaintBalls(){
+    if (!ballsLayer) return;
     const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
     const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
     for (const [id,p] of pieces.entries()){
@@ -1018,13 +972,12 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function layoutBalls(skipAnim=false){
-    // map piece -> index
+    if (!ballsLayer) return;
     const pos = new Map();
     for (let i=0;i<16;i++){
       if (board[i]!==null) pos.set(board[i], i);
     }
 
-    // remove offboard elements
     for (const el of Array.from(ballsLayer.querySelectorAll(".ball"))){
       const id = Number(el.dataset.id);
       if (!pos.has(id)) el.remove();
@@ -1052,7 +1005,7 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function waitForTransitions(){
-    if (!animationsOn) return Promise.resolve();
+    if (!animationsOn || !ballsLayer) return Promise.resolve();
     const els = Array.from(ballsLayer.querySelectorAll(".ball"));
     if (els.length===0) return Promise.resolve();
 
@@ -1104,25 +1057,14 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     board[to] = pid;
   }
 
-  // ===== UI sync =====
   function syncHighlights(){
     cells.forEach(c => c.classList.remove("hint","target","selected","win"));
 
-    if (winner === 1 || winner === 2){
-      if (winLine){
-        for (const i of winLine) cells[i].classList.add("win");
-      }
-      return;
+    if (!started) return;
+    if (winLine){
+      for (const i of winLine) cells[i].classList.add("win");
     }
-    if (winner === -1){
-      // draw: highlight all winning lines found (first for each player)
-      const out = checkOutcome();
-      const p1 = out.both?.p1Line;
-      const p2 = out.both?.p2Line;
-      if (p1) for (const i of p1) cells[i].classList.add("win");
-      if (p2) for (const i of p2) cells[i].classList.add("win");
-      return;
-    }
+    if (winner) return;
 
     const opp = other(current);
     if (phase==="moveOpp"){
@@ -1151,20 +1093,32 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
 
   function updateStatusText(){
     const L = t();
-    if (winner === -1){
-      setStatus("warn", L.draw);
+
+    if (!started){
+      setStatus("", L.beforeStart);
       return;
     }
-    if (winner === 1 || winner === 2){
+
+    if (winner===3){
+      setStatus("ok", L.draw);
+      return;
+    }
+    if (winner){
       setStatus("ok", L.win(winner));
       return;
     }
+
     const opp = other(current);
 
     if (phase==="moveOpp"){
       if (!opponentHasMove(opp)){
-        phase = "placeOwn";
-        setStatus("warn", L.stepMoveSkip(current));
+        if (pieces.size===0){
+          phase = "placeOwn";
+          setStatus("", L.stepPlace(current));
+        } else {
+          phase = "placeOwn";
+          setStatus("warn", L.stepMoveSkip(current));
+        }
       } else {
         setStatus("", L.stepMove(current));
       }
@@ -1176,17 +1130,20 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function syncControls(){
-    btnUndo.disabled = history.length===0 || locked;
-    btnShift.disabled = (phase!=="shift") || (winner!==0) || locked;
-    btnNew.disabled = locked;
-    btnReset.disabled = locked;
-    modeEl.disabled = locked;
-    aiFirstEl.disabled = locked || (modeEl.value!=="ai");
-    aiSpeedEl.disabled = locked || (modeEl.value!=="ai");
-    animEl.disabled = locked;
-    layoutEl.disabled = locked;
-    p1ColorEl.disabled = locked;
-    p2ColorEl.disabled = locked;
+    btnStart.disabled = locked;
+    btnNew.disabled = !started || locked;
+    btnReset.disabled = !started || locked;
+
+    btnUndo.disabled = !started || history.length===0 || locked;
+    btnShift.disabled = !started || (phase!=="shift") || winner || locked;
+
+    modeEl.disabled = started || locked;
+    startWhoEl.disabled = started || locked || (modeEl.value!=="ai");
+    aiSpeedEl.disabled = started || locked || (modeEl.value!=="ai");
+    animEl.disabled = started || locked;
+    densityEl.disabled = started || locked;
+    p1ColorEl.disabled = started || locked;
+    p2ColorEl.disabled = started || locked;
   }
 
   function syncAll(){
@@ -1196,7 +1153,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     syncControls();
   }
 
-  // ===== History =====
   function pushHistory(){
     const snapBoard = board.slice();
     const snapPieces = Array.from(pieces.entries()).map(([k,v]) => [k, {...v}]);
@@ -1214,7 +1170,7 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   function undo(){
-    if (history.length===0 || locked) return;
+    if (!started || history.length===0 || locked) return;
     const s = history.pop();
     board = s.board;
     pieces = new Map(s.pieces);
@@ -1224,12 +1180,11 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     selectedFrom = s.selectedFrom;
     winner = s.winner;
     winLine = s.winLine;
-    setStatus("warn", getLang()==="sv" ? "Ångrade." : "Undo.");
+    setStatus("warn", t().undoMsg);
     layoutBalls(true);
     syncAll();
   }
 
-  // ===== AI =====
   function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
   function aiDelays(){
@@ -1241,10 +1196,10 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
 
   function scoreBoard(forPlayer){
     const opp = other(forPlayer);
-    const out = checkOutcome();
-    if (out.outcome===forPlayer) return 1e9;
-    if (out.outcome===opp) return -1e9;
-    if (out.outcome===-1) return 0; // draw
+    const res = checkWinners();
+    if (res.winner===forPlayer) return 1e9;
+    if (res.winner===opp) return -1e9;
+    if (res.winner===3) return 0;
 
     let score = 0;
     for (const line of LINES){
@@ -1260,7 +1215,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
       if (p>0) score += Math.pow(6,p);
       if (o>0) score -= Math.pow(6,o)*1.1;
     }
-    // center preference
     for (const i of [5,6,9,10]){
       const pid = board[i];
       if (!pid) continue;
@@ -1323,6 +1277,7 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   async function maybeAIMove(){
+    if (!started) return;
     if (!aiEnabled || winner) return;
     if (current !== aiPlayer) return;
     if (aiBusy) return;
@@ -1336,7 +1291,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     await sleep(think);
 
     try{
-      // force correct phase for AI
       if (phase !== "moveOpp"){
         phase = "moveOpp";
         selectedFrom = null;
@@ -1347,7 +1301,6 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
       const action = pickBestAIAction(aiPlayer);
       pushHistory();
 
-      // Step 1: move opponent piece (if possible)
       if (action.mv){
         setStatus("warn", t().aiMove);
         applyOpponentMove(action.mv.from, action.mv.to);
@@ -1356,13 +1309,11 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
         await sleep(step);
       }
 
-      // Step 2: place
       placePiece(aiPlayer, action.place);
       layoutBalls(false);
       await waitForTransitions();
       await sleep(step);
 
-      // Step 3: shift
       phase = "shift";
       syncAll();
       await sleep(140);
@@ -1372,15 +1323,11 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
       await waitForTransitions();
       await sleep(step);
 
-      const out = checkOutcome();
-      winner = out.outcome;
-      winLine = out.line;
+      const res = checkWinners();
+      winner = res.winner;
+      winLine = res.line;
 
-      if (winner === -1){
-        setStatus("warn", t().draw);
-      } else if (winner){
-        setStatus("ok", t().win(winner));
-      } else {
+      if (!winner){
         current = other(current);
         phase = "moveOpp";
         selectedFrom = null;
@@ -1394,9 +1341,8 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     }
   }
 
-  // ===== Click handling =====
   async function onCellClick(i){
-    if (locked || winner) return;
+    if (!started || locked || winner) return;
     if (aiEnabled && current===aiPlayer) return;
 
     const opp = other(current);
@@ -1457,62 +1403,52 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
   }
 
   async function performShiftSequence(){
-    if (locked || winner || phase!=="shift") return;
+    if (!started || locked || winner || phase!=="shift") return;
 
     pushHistory();
     doShift();
     layoutBalls(false);
     await waitForTransitions();
 
-    const out = checkOutcome();
-    winner = out.outcome;
-    winLine = out.line;
+    const res = checkWinners();
+    winner = res.winner;
+    winLine = res.line;
 
-    if (winner === -1){
-      setStatus("warn", t().draw);
-      syncAll();
-      return;
-    }
-    if (winner){
-      setStatus("ok", t().win(winner));
-      syncAll();
-      return;
+    if (!winner){
+      current = other(current);
+      phase = "moveOpp";
+      selectedFrom = null;
     }
 
-    current = other(current);
-    phase = "moveOpp";
-    selectedFrom = null;
     syncAll();
-
-    // AI turn next
     maybeAIMove();
   }
 
-  // ===== Mode/config =====
-  function configureMode(){
+  function configureModeForStart(){
     aiEnabled = (modeEl.value==="ai");
-    aiFirstEl.disabled = !aiEnabled;
-    aiSpeedEl.disabled = !aiEnabled;
-
     if (!aiEnabled){
       aiPlayer = 2;
       current = 1;
       return;
     }
 
-    if (aiFirstEl.value==="aiFirst"){
+    const who = startWhoEl.value;
+    if (who==="shuffle"){
+      aiPlayer = (Math.random() < 0.5) ? 1 : 2;
+    } else if (who==="ai"){
       aiPlayer = 1;
-      current = 1;
     } else {
       aiPlayer = 2;
-      current = 1;
     }
+    current = 1;
   }
 
-  function resetAll(keepSettings){
-    locked = false;
-    aiBusy = false;
+  function setDensity(){
+    boardEl.dataset.density = densityEl.value || "auto";
+    layoutBalls(true);
+  }
 
+  function hardResetBoard(){
     board = Array(16).fill(null);
     pieces = new Map();
     nextPieceId = 1;
@@ -1522,52 +1458,68 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     history = [];
     selectedFrom = null;
     phase = "moveOpp";
+  }
 
-    if (!keepSettings){
-      modeEl.value = "pvp";
-      aiFirstEl.value = "humanFirst";
-      aiSpeedEl.value = "normal";
-      animEl.value = "on";
-      layoutEl.value = "auto";
-      p1ColorEl.selectedIndex = 0;
-      p2ColorEl.selectedIndex = 1;
-      enforceDistinctColors();
-    }
+  function startGame(){
+    started = true;
+    locked = false;
+    aiBusy = false;
 
     animationsOn = (animEl.value==="on");
-    applyLayout(layoutEl.value);
+    setDensity();
 
-    configureMode();
-
+    hardResetBoard();
+    configureModeForStart();
     layoutBalls(true);
     syncAll();
 
     if (aiEnabled && current===aiPlayer) maybeAIMove();
   }
 
-  // ===== Events =====
-  btnNew.addEventListener("click", () => resetAll(true));
-  btnReset.addEventListener("click", () => resetAll(true));
+  function newGameSameSettings(){
+    if (!started) return;
+    locked = false;
+    aiBusy = false;
+    hardResetBoard();
+    configureModeForStart();
+    layoutBalls(true);
+    syncAll();
+
+    if (aiEnabled && current===aiPlayer) maybeAIMove();
+  }
+
+  function resetToSetup(){
+    started = false;
+    locked = false;
+    aiBusy = false;
+    hardResetBoard();
+    layoutBalls(true);
+    syncAll();
+  }
+
+  btnStart.addEventListener("click", startGame);
+  btnNew.addEventListener("click", newGameSameSettings);
+  btnReset.addEventListener("click", resetToSetup);
   btnUndo.addEventListener("click", undo);
   btnShift.addEventListener("click", () => performShiftSequence());
 
-  modeEl.addEventListener("change", () => resetAll(true));
-  aiFirstEl.addEventListener("change", () => resetAll(true));
   aiSpeedEl.addEventListener("change", () => localStorage.setItem("shift4_aiSpeed", aiSpeedEl.value));
 
   animEl.addEventListener("change", () => {
+    if (started) return;
     animationsOn = (animEl.value==="on");
     localStorage.setItem("shift4_anim", animEl.value);
     layoutBalls(true);
   });
 
-  layoutEl.addEventListener("change", () => {
-    applyLayout(layoutEl.value);
-    resetAll(true);
+  densityEl.addEventListener("change", () => {
+    if (started) return;
+    localStorage.setItem("shift4_density", densityEl.value);
+    setDensity();
   });
 
-  p1ColorEl.addEventListener("change", enforceDistinctColors);
-  p2ColorEl.addEventListener("change", enforceDistinctColors);
+  p1ColorEl.addEventListener("change", () => { if (!started) enforceDistinctColors(); });
+  p2ColorEl.addEventListener("change", () => { if (!started) enforceDistinctColors(); });
 
   langBtn.addEventListener("click", () => {
     const next = (getLang()==="en") ? "sv" : "en";
@@ -1575,12 +1527,14 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     applyTranslations();
   });
 
-  window.addEventListener("resize", () => {
-    autoLayoutTick();
-    layoutBalls(true);
+  modeEl.addEventListener("change", () => {
+    startWhoEl.disabled = (modeEl.value!=="ai") || started || locked;
+    aiSpeedEl.disabled = (modeEl.value!=="ai") || started || locked;
+    syncAll();
   });
 
-  // ===== Translations apply =====
+  window.addEventListener("resize", () => layoutBalls(true));
+
   function applyTranslations(){
     const L = t();
     homeBtn.textContent = L.home;
@@ -1588,6 +1542,7 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     gameHeaderSub.textContent = L.gameHeaderSub;
 
     settingsTitle.textContent = L.settingsTitle;
+    btnStart.textContent = L.startGame;
     btnNew.textContent = L.newGame;
     btnReset.textContent = L.reset;
     btnUndo.textContent = L.undo;
@@ -1595,13 +1550,14 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
 
     modeLabel.textContent = L.modeLabel;
     const modeOpts = modeEl.querySelectorAll("option");
-    if (modeOpts[0]) modeOpts[0].textContent = L.modePvp;
-    if (modeOpts[1]) modeOpts[1].textContent = L.modeAi;
+    if (modeOpts[0]) modeOpts[0].textContent = L.modeAi;
+    if (modeOpts[1]) modeOpts[1].textContent = L.modePvp;
 
-    aiFirstLabel.textContent = L.aiFirstLabel;
-    const aiFirstOpts = aiFirstEl.querySelectorAll("option");
-    if (aiFirstOpts[0]) aiFirstOpts[0].textContent = L.humanFirst;
-    if (aiFirstOpts[1]) aiFirstOpts[1].textContent = L.aiFirst;
+    startLabel.textContent = L.startLabel;
+    const st = startWhoEl.querySelectorAll("option");
+    if (st[0]) st[0].textContent = L.startShuffle;
+    if (st[1]) st[1].textContent = L.startHuman;
+    if (st[2]) st[2].textContent = L.startAi;
 
     aiSpeedLabel.textContent = L.aiSpeedLabel;
     const sp = aiSpeedEl.querySelectorAll("option");
@@ -1614,11 +1570,11 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     if (an[0]) an[0].textContent = L.animOn;
     if (an[1]) an[1].textContent = L.animOff;
 
-    layoutLabel.textContent = L.layoutLabel;
-    const lo = layoutEl.querySelectorAll("option");
-    if (lo[0]) lo[0].textContent = L.layoutAuto;
-    if (lo[1]) lo[1].textContent = L.layoutCozy;
-    if (lo[2]) lo[2].textContent = L.layoutCompact;
+    densityLabel.textContent = L.densityLabel;
+    const dn = densityEl.querySelectorAll("option");
+    if (dn[0]) dn[0].textContent = L.densityAuto;
+    if (dn[1]) dn[1].textContent = L.densityCozy;
+    if (dn[2]) dn[2].textContent = L.densityCompact;
 
     p1Label.textContent = L.p1Label;
     p2Label.textContent = L.p2Label;
@@ -1629,18 +1585,13 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     langIcon.textContent = isSv ? "🇸🇪" : "🇬🇧";
     langText.textContent = isSv ? "Svenska" : "English";
 
-    // repopulate color names in correct language
     populateColors();
-
-    updateTurnPill();
     syncAll();
   }
 
-  // ===== Init =====
   function init(){
     setLang(getLang());
 
-    // restore saved settings
     const savedSpeed = localStorage.getItem("shift4_aiSpeed");
     if (savedSpeed) aiSpeedEl.value = savedSpeed;
 
@@ -1648,15 +1599,24 @@ Om <b>båda</b> har 4-i-rad efter samma Shift blir det <b>oavgjort</b>.
     if (savedAnim) animEl.value = savedAnim;
     animationsOn = (animEl.value==="on");
 
-    const savedLayout2 = localStorage.getItem("shift4_layout");
-    if (savedLayout2) layoutEl.value = savedLayout2;
-    applyLayout(layoutEl.value);
+    const savedDensity = localStorage.getItem("shift4_density");
+    if (savedDensity) densityEl.value = savedDensity;
+    boardEl.dataset.density = densityEl.value || "auto";
 
     buildBoard();
     populateColors();
-    configureMode();
+    modeEl.value = "ai";
+    startWhoEl.disabled = false;
+
     applyTranslations();
-    resetAll(true);
+
+    started = false;
+    hardResetBoard();
+    layoutBalls(true);
+    syncAll();
+
+    btnNew.disabled = true;
+    btnReset.disabled = true;
   }
 
   init();
