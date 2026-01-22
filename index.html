@@ -1,0 +1,1523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Shift-4 (SV/EN) | Simple Tools</title>
+  <meta name="description" content="Play Shift-4 (Orbito-style) online with dark/light theme, Swedish/English, local multiplayer or AI, and custom ball colors." />
+
+  <link rel="canonical" href="https://simple-tools-dev.github.io/shift-4/" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="author" content="simple-tools-dev" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Simple Tools" />
+  <meta property="og:title" content="Shift-4 (SV/EN)" />
+  <meta property="og:description" content="Orbito-style 4-in-a-row with shifting orbits. Play vs AI or a friend." />
+  <meta property="og:url" content="https://simple-tools-dev.github.io/shift-4/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Shift-4 (SV/EN)" />
+  <meta name="twitter:description" content="Orbito-style 4-in-a-row with shifting orbits. Play vs AI or a friend." />
+
+  <link rel="alternate" hreflang="en" href="https://simple-tools-dev.github.io/shift-4/" />
+  <link rel="alternate" hreflang="sv" href="https://simple-tools-dev.github.io/shift-4/" />
+  <link rel="alternate" hreflang="x-default" href="https://simple-tools-dev.github.io/shift-4/" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Shift-4",
+    "url": "https://simple-tools-dev.github.io/shift-4/",
+    "inLanguage": ["en", "sv"],
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web",
+    "gamePlatform": "Web browser",
+    "description": "Orbito-style 4-in-a-row with shifting orbits. Play vs AI or a friend.",
+    "author": {
+      "@type": "Organization",
+      "name": "Simple Tools",
+      "url": "https://simple-tools-dev.github.io/"
+    }
+  }
+  </script>
+
+  <!-- GoatCounter -->
+  <script data-goatcounter="https://simple-tools-dev.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
+
+  <style>
+    /* ===== Same variables as Minesweeper ===== */
+    :root{
+      --bg:#0b0f14; --bg2:#0e1520;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --border: rgba(255,255,255,0.10);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --btn: rgba(255,255,255,0.10);
+      --btnHover: rgba(255,255,255,0.14);
+      --focus: rgba(110,231,255,0.25);
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+
+      /* Minesweeper-ish bevel palette */
+      --ms-surface: rgba(255,255,255,0.05);
+      --ms-surface2: rgba(255,255,255,0.03);
+      --ms-hi: rgba(255,255,255,0.16);
+      --ms-lo: rgba(0,0,0,0.55);
+
+      /* Shift-4 sizing */
+      --cell: 104px;
+      --gap: 12px;
+      --pad: 10px;
+    }
+    :root[data-theme="light"]{
+      --bg:#f7f7fb; --bg2:#ffffff;
+      --card: rgba(0,0,0,0.04);
+      --card2: rgba(0,0,0,0.06);
+      --text: rgba(0,0,0,0.88);
+      --muted: rgba(0,0,0,0.60);
+      --border: rgba(0,0,0,0.10);
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --btn: rgba(0,0,0,0.06);
+      --btnHover: rgba(0,0,0,0.09);
+      --focus: rgba(14,165,233,0.18);
+
+      --ms-surface: rgba(0,0,0,0.04);
+      --ms-surface2: rgba(0,0,0,0.02);
+      --ms-hi: rgba(255,255,255,0.75);
+      --ms-lo: rgba(0,0,0,0.28);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(110,231,255,0.20), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(167,139,250,0.18), transparent 50%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height:100vh;
+      overflow-x:auto;
+    }
+    a{ color:inherit; text-decoration:none; }
+
+    .wrap{ max-width: 1200px; margin:0 auto; padding:26px 18px 50px; }
+
+    .top{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:14px; flex-wrap: wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:700; letter-spacing:.2px;
+      min-width: 240px;
+    }
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background:
+        radial-gradient(16px 16px at 30% 30%, rgba(110,231,255,0.9), transparent 60%),
+        radial-gradient(18px 18px at 70% 30%, rgba(167,139,250,0.8), transparent 65%),
+        radial-gradient(20px 20px at 50% 80%, rgba(52,211,153,0.65), transparent 65%),
+        rgba(255,255,255,0.05);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .small{ font-size:13px; color: var(--muted); font-weight:500; }
+
+    .nav{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: var(--btn);
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      font-size:14px;
+    }
+    .btn:hover{ background: var(--btnHover); }
+    .btn:active{ transform: translateY(1px); }
+    .btn:focus{ outline:none; box-shadow: 0 0 0 4px var(--focus); }
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(110,231,255,0.22), rgba(167,139,250,0.18));
+      border-color: rgba(255,255,255,0.16);
+    }
+    .btn.danger{ border-color: rgba(251,113,133,0.35); }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 360px; /* original layout */
+      gap:18px;
+      align-items:start;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border-radius:16px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-width: 0;
+    }
+    .cardHeader{
+      padding:14px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .cardHeader h1, .cardHeader h2{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .sub{ color: var(--muted); font-size:12px; margin-top:4px; }
+
+    .bodyPad{ padding:16px; }
+
+    /* Board shell */
+    .msPanel{
+      background: linear-gradient(180deg, var(--ms-surface), var(--ms-surface2));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .bevel{
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      box-shadow:
+        inset 1px 1px 0 var(--ms-hi),
+        inset -1px -1px 0 var(--ms-lo);
+    }
+
+    .boardWrap{
+      display:flex;
+      justify-content:center;
+      padding: 4px 0;
+    }
+
+    .board{
+      position: relative;
+      padding: var(--pad);
+      display:grid;
+      grid-template-columns: repeat(4, var(--cell));
+      grid-template-rows: repeat(4, var(--cell));
+      gap: var(--gap);
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        inset 1px 1px 0 var(--ms-lo),
+        inset -1px -1px 0 var(--ms-hi);
+      border-radius: 14px;
+      width: fit-content;
+      user-select:none;
+    }
+    :root[data-theme="light"] .board{
+      background: rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.10);
+    }
+
+    .cellBtn{
+      width: var(--cell);
+      height: var(--cell);
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.0);
+      background: rgba(255,255,255,0.06);
+      box-shadow:
+        inset 1px 1px 0 var(--ms-hi),
+        inset -1px -1px 0 var(--ms-lo);
+      cursor:pointer;
+    }
+    :root[data-theme="light"] .cellBtn{ background: rgba(0,0,0,0.04); }
+
+    .cellBtn:focus{ outline:none; box-shadow: 0 0 0 4px var(--focus); position:relative; z-index:2; }
+    .cellBtn:active{
+      box-shadow:
+        inset -1px -1px 0 var(--ms-hi),
+        inset 1px 1px 0 var(--ms-lo);
+    }
+
+    .hint{ outline: 2px solid rgba(110,231,255,0.30); outline-offset: 2px; }
+    .target{ outline: 2px solid rgba(167,139,250,0.32); outline-offset: 2px; }
+    .selected{ outline: 2px solid rgba(255,255,255,0.55); outline-offset: 2px; }
+    .win{ outline: 3px solid rgba(52,211,153,0.85); outline-offset: 2px; }
+
+    /* Balls overlay */
+    .ballsLayer{
+      position:absolute;
+      left: var(--pad);
+      top: var(--pad);
+      width: calc(4 * var(--cell) + 3 * var(--gap));
+      height: calc(4 * var(--cell) + 3 * var(--gap));
+      pointer-events:none;
+    }
+    .ball{
+      position:absolute;
+      width: var(--cell);
+      height: var(--cell);
+      display:grid;
+      place-items:center;
+      transform: translate(var(--x, 0px), var(--y, 0px));
+      transition: transform 360ms cubic-bezier(.2,.9,.2,1);
+      will-change: transform;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.22));
+    }
+    .ballInner{
+      width: 72%;
+      height: 72%;
+      border-radius: 999px;
+      background: var(--c, #fff);
+      box-shadow:
+        inset 0 8px 18px rgba(255,255,255,.25),
+        inset 0 -10px 20px rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.22);
+      transform: scale(0.98);
+    }
+    :root[data-theme="light"] .ballInner{
+      border-color: rgba(0,0,0,0.14);
+      box-shadow:
+        inset 0 8px 18px rgba(255,255,255,.35),
+        inset 0 -10px 20px rgba(0,0,0,.16);
+    }
+    .pop{ animation: pop 220ms ease-out; }
+    @keyframes pop{
+      0%{ transform: translate(var(--x), var(--y)) scale(0.6); opacity:.4; }
+      100%{ transform: translate(var(--x), var(--y)) scale(1); opacity:1; }
+    }
+
+    /* Side panel controls */
+    .panel{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .row{ display:flex; gap:10px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
+    label{ font-size:12px; color: var(--muted); }
+
+    select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      outline:none;
+      font-size:14px;
+    }
+    :root[data-theme="light"] select{ background: rgba(0,0,0,0.03); }
+
+    .status{
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 14px;
+      white-space: pre-line;
+    }
+    .status.ok{ border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); color: var(--text); }
+    .status.warn{ border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.10); color: var(--text); }
+    .status.bad{ border-color: rgba(251,113,133,0.35); background: rgba(251,113,133,0.10); color: var(--text); }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px; border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      font-size: 13px;
+      color: var(--text);
+      user-select:none;
+    }
+    :root[data-theme="light"] .pill{ background: rgba(0,0,0,0.03); }
+
+    .dot{
+      width:12px; height:12px; border-radius: 999px;
+      background: var(--c, #fff);
+      border:1px solid rgba(255,255,255,0.30);
+    }
+    :root[data-theme="light"] .dot{ border-color: rgba(0,0,0,0.20); }
+
+    .help{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    kbd{
+      background: rgba(255,255,255,0.06);
+      border:1px solid var(--border);
+      border-bottom-color: rgba(0,0,0,0.35);
+      padding:2px 6px;
+      border-radius:8px;
+      color: var(--text);
+      font-size:12px;
+    }
+    :root[data-theme="light"] kbd{
+      background: rgba(0,0,0,0.04);
+      border-bottom-color: rgba(0,0,0,0.22);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div id="appTitle">Shift-4</div>
+          <div class="small" id="appSubtitle">Orbits • 4-in-a-row • SV/EN • Dark/Light</div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <a class="btn" href="https://simple-tools-dev.github.io/" id="homeBtn">← Main menu</a>
+
+        <button class="btn" id="langBtn" type="button" aria-label="Switch language">
+          <span id="langIcon">🇬🇧</span><span id="langText">English</span>
+        </button>
+
+        <button class="btn" id="themeBtn" type="button" aria-label="Toggle theme">
+          <span id="themeIcon">🌙</span><span id="themeText">Dark</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: game (original layout) -->
+      <section class="card">
+        <div class="cardHeader">
+          <div>
+            <h1 id="gameHeaderTitle">Shift-4</h1>
+            <div class="sub" id="gameHeaderSub">Move • Place • Shift. Win is checked after Shift.</div>
+          </div>
+          <div class="pill" id="turnPill">
+            <span class="dot" id="turnDot"></span>
+            <span id="turnText">—</span>
+          </div>
+        </div>
+
+        <div class="bodyPad">
+          <div class="msPanel bevel">
+            <div class="boardWrap">
+              <div class="board" id="board" aria-label="Board 4x4">
+                <!-- cells + balls injected -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: settings -->
+      <aside class="card">
+        <div class="cardHeader">
+          <h2 id="settingsTitle">Settings</h2>
+          <button class="btn secondary" id="btnNew" type="button">New game</button>
+        </div>
+
+        <div class="panel">
+          <div class="row">
+            <div style="flex:1; min-width: 150px;">
+              <label id="modeLabel" for="mode">Mode</label>
+              <select id="mode">
+                <option value="pvp">Play vs friend (local)</option>
+                <option value="ai">Play vs AI</option>
+              </select>
+            </div>
+
+            <div style="flex:1; min-width: 150px;">
+              <label id="aiFirstLabel" for="aiFirst">In AI mode</label>
+              <select id="aiFirst">
+                <option value="humanFirst">You start</option>
+                <option value="aiFirst">AI starts</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1; min-width: 150px;">
+              <label id="aiSpeedLabel" for="aiSpeed">AI speed</label>
+              <select id="aiSpeed">
+                <option value="fast">Fast</option>
+                <option value="normal" selected>Normal</option>
+                <option value="slow">Slow</option>
+              </select>
+            </div>
+
+            <div style="flex:1; min-width: 150px;">
+              <label id="animLabel" for="anim">Animations</label>
+              <select id="anim">
+                <option value="on" selected>On</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1; min-width: 150px;">
+              <label id="p1Label" for="p1Color">Player 1 color</label>
+              <select id="p1Color"></select>
+            </div>
+
+            <div style="flex:1; min-width: 150px;">
+              <label id="p2Label" for="p2Color">Player 2 / AI color</label>
+              <select id="p2Color"></select>
+            </div>
+          </div>
+
+          <div class="row" style="align-items:center;">
+            <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
+            <button class="btn primary" id="btnShift" type="button" disabled>Shift</button>
+            <button class="btn danger" id="btnReset" type="button">Reset</button>
+          </div>
+
+          <div class="status" id="status">—</div>
+
+          <div class="help" id="helpText">
+            <b>Turn steps</b><br/>
+            1) Move one opponent ball to an adjacent empty cell (if possible)<br/>
+            2) Place your own ball on any empty cell<br/>
+            3) Press <kbd>Shift</kbd> to rotate both orbits one step<br/><br/>
+            <b>Rules / Win</b><br/>
+            You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+
+  // ===== Theme (same behavior as Minesweeper) =====
+  const themeBtn = document.getElementById("themeBtn");
+  const themeIcon = document.getElementById("themeIcon");
+  const themeText = document.getElementById("themeText");
+
+  function applyTheme(theme){
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    const isLight = theme === "light";
+    themeIcon.textContent = isLight ? "☀️" : "🌙";
+    themeText.textContent = isLight ? "Light" : "Dark";
+  }
+  const savedTheme = localStorage.getItem("theme");
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  applyTheme(savedTheme || (prefersLight ? "light" : "dark"));
+  themeBtn.addEventListener("click", () => {
+    const cur = root.getAttribute("data-theme") || "dark";
+    applyTheme(cur === "dark" ? "light" : "dark");
+    layoutBalls(true);
+  });
+
+  // ===== i18n =====
+  const I18N = {
+    en: {
+      home: "← Main menu",
+      appSubtitle: "Orbits • 4-in-a-row • SV/EN • Dark/Light",
+      gameHeaderSub: "Move • Place • Shift. Win is checked after Shift.",
+      settingsTitle: "Settings",
+      newGame: "New game",
+      reset: "Reset",
+      undo: "Undo",
+      shift: "Shift",
+
+      modeLabel: "Mode",
+      modePvp: "Play vs friend (local)",
+      modeAi: "Play vs AI",
+      aiFirstLabel: "In AI mode",
+      humanFirst: "You start",
+      aiFirst: "AI starts",
+
+      aiSpeedLabel: "AI speed",
+      speedFast: "Fast",
+      speedNormal: "Normal",
+      speedSlow: "Slow",
+
+      animLabel: "Animations",
+      animOn: "On",
+      animOff: "Off",
+
+      p1Label: "Player 1 color",
+      p2Label: "Player 2 / AI color",
+
+      turn: (p) => `Turn: Player ${p}`,
+      win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
+      stepMove: (p) => `Player ${p}:\nStep 1: Move one opponent ball to an adjacent empty cell.`,
+      stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nSkip to Step 2: Place your ball.`,
+      stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
+      stepShift: (p) => `Player ${p}:\nStep 3: Press Shift (rotate both orbits).`,
+      aiThinking: "AI is thinking…",
+      aiMove: "AI move…",
+
+      helpHtml: `
+<b>Turn steps</b><br/>
+1) Move one opponent ball to an adjacent empty cell (if possible)<br/>
+2) Place your own ball on any empty cell<br/>
+3) Press <kbd>Shift</kbd> to rotate both orbits one step<br/><br/>
+<b>Rules / Win</b><br/>
+You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.
+      `.trim(),
+    },
+    sv: {
+      home: "← Huvudmeny",
+      appSubtitle: "Orbits • 4-i-rad • SV/EN • Mörk/Ljus",
+      gameHeaderSub: "Flytta • Placera • Shift. Vinst kollas efter Shift.",
+      settingsTitle: "Inställningar",
+      newGame: "Nytt spel",
+      reset: "Återställ",
+      undo: "Ångra",
+      shift: "Shift",
+
+      modeLabel: "Läge",
+      modePvp: "Spela mot vän (lokalt)",
+      modeAi: "Spela mot AI",
+      aiFirstLabel: "I AI-läge",
+      humanFirst: "Du börjar",
+      aiFirst: "AI börjar",
+
+      aiSpeedLabel: "AI-hastighet",
+      speedFast: "Snabb",
+      speedNormal: "Normal",
+      speedSlow: "Långsam",
+
+      animLabel: "Animationer",
+      animOn: "På",
+      animOff: "Av",
+
+      p1Label: "Spelare 1 färg",
+      p2Label: "Spelare 2 / AI färg",
+
+      turn: (p) => `Tur: Spelare ${p}`,
+      win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
+      stepMove: (p) => `Spelare ${p}:\nSteg 1: Flytta en av motståndarens kulor till en tom granne.`,
+      stepMoveSkip: (p) => `Spelare ${p}:\nMotståndaren kan inte flyttas.\nHoppa till Steg 2: Placera din kula.`,
+      stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
+      stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits).`,
+      aiThinking: "AI tänker…",
+      aiMove: "AI gör sitt drag…",
+
+      helpHtml: `
+<b>Turens steg</b><br/>
+1) Flytta 1 av motståndarens kulor till en tom granne (om möjligt)<br/>
+2) Placera din egen kula på valfri tom ruta<br/>
+3) Tryck <kbd>Shift</kbd> för att rotera båda orbits ett steg<br/><br/>
+<b>Regler / Vinst</b><br/>
+Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>efter</b> Shift.
+      `.trim(),
+    }
+  };
+
+  function getLang(){ return localStorage.getItem("lang") || "en"; }
+  function setLang(lang){
+    localStorage.setItem("lang", lang);
+    root.setAttribute("lang", lang === "sv" ? "sv" : "en");
+  }
+  function t(){ return I18N[getLang()]; }
+
+  const langBtn = document.getElementById("langBtn");
+  const langIcon = document.getElementById("langIcon");
+  const langText = document.getElementById("langText");
+
+  const homeBtn = document.getElementById("homeBtn");
+  const appSubtitle = document.getElementById("appSubtitle");
+  const gameHeaderSub = document.getElementById("gameHeaderSub");
+  const settingsTitle = document.getElementById("settingsTitle");
+
+  const modeLabel = document.getElementById("modeLabel");
+  const aiFirstLabel = document.getElementById("aiFirstLabel");
+  const aiSpeedLabel = document.getElementById("aiSpeedLabel");
+  const animLabel = document.getElementById("animLabel");
+  const p1Label = document.getElementById("p1Label");
+  const p2Label = document.getElementById("p2Label");
+
+  const modeEl = document.getElementById("mode");
+  const aiFirstEl = document.getElementById("aiFirst");
+  const aiSpeedEl = document.getElementById("aiSpeed");
+  const animEl = document.getElementById("anim");
+
+  const p1ColorEl = document.getElementById("p1Color");
+  const p2ColorEl = document.getElementById("p2Color");
+
+  const btnNew = document.getElementById("btnNew");
+  const btnReset = document.getElementById("btnReset");
+  const btnUndo = document.getElementById("btnUndo");
+  const btnShift = document.getElementById("btnShift");
+
+  const statusEl = document.getElementById("status");
+  const helpText = document.getElementById("helpText");
+
+  const turnDot = document.getElementById("turnDot");
+  const turnText = document.getElementById("turnText");
+
+  // ===== Colors =====
+  const COLORS = [
+    { en:"Red",    sv:"Röd",    hex:"#ff4d4d" },
+    { en:"Blue",   sv:"Blå",    hex:"#4d7cff" },
+    { en:"Green",  sv:"Grön",   hex:"#34d399" },
+    { en:"Yellow", sv:"Gul",    hex:"#fbbf24" },
+    { en:"Purple", sv:"Lila",   hex:"#a78bfa" },
+    { en:"Orange", sv:"Orange", hex:"#fb923c" },
+    { en:"Cyan",   sv:"Turkos", hex:"#22d3ee" },
+    { en:"Pink",   sv:"Rosa",   hex:"#fb7185" },
+    { en:"White",  sv:"Vit",    hex:"#f8fafc" },
+    { en:"Black",  sv:"Svart",  hex:"#0b0f1a" },
+    { en:"Brown",  sv:"Brun",   hex:"#a16207" },
+    { en:"Silver", sv:"Silver", hex:"#cbd5e1" }
+  ];
+  const cname = (c) => getLang()==="sv" ? c.sv : c.en;
+
+  function populateColors(){
+    const s1 = p1ColorEl.selectedIndex;
+    const s2 = p2ColorEl.selectedIndex;
+
+    p1ColorEl.innerHTML = "";
+    p2ColorEl.innerHTML = "";
+    for (const c of COLORS){
+      const o1 = document.createElement("option");
+      o1.value = c.hex; o1.textContent = cname(c);
+      p1ColorEl.appendChild(o1);
+      const o2 = document.createElement("option");
+      o2.value = c.hex; o2.textContent = cname(c);
+      p2ColorEl.appendChild(o2);
+    }
+
+    // restore saved
+    const savedP1 = localStorage.getItem("shift4_p1Color");
+    const savedP2 = localStorage.getItem("shift4_p2Color");
+    let i1 = savedP1 ? COLORS.findIndex(x=>x.hex===savedP1) : (s1>=0?s1:0);
+    let i2 = savedP2 ? COLORS.findIndex(x=>x.hex===savedP2) : (s2>=0?s2:1);
+    if (i1<0) i1=0;
+    if (i2<0) i2=1;
+
+    p1ColorEl.selectedIndex = i1;
+    p2ColorEl.selectedIndex = i2;
+
+    enforceDistinctColors();
+  }
+
+  function enforceDistinctColors(){
+    const p1i = p1ColorEl.selectedIndex;
+    const p2i = p2ColorEl.selectedIndex;
+
+    for (let i=0;i<COLORS.length;i++){
+      p1ColorEl.options[i].disabled = false;
+      p2ColorEl.options[i].disabled = false;
+    }
+    if (p1i>=0) p2ColorEl.options[p1i].disabled = true;
+    if (p2i>=0) p1ColorEl.options[p2i].disabled = true;
+
+    if (p1ColorEl.selectedIndex === p2ColorEl.selectedIndex){
+      for (let i=0;i<COLORS.length;i++){
+        if (!p2ColorEl.options[i].disabled){
+          p2ColorEl.selectedIndex = i;
+          break;
+        }
+      }
+      return enforceDistinctColors();
+    }
+
+    localStorage.setItem("shift4_p1Color", COLORS[p1ColorEl.selectedIndex].hex);
+    localStorage.setItem("shift4_p2Color", COLORS[p2ColorEl.selectedIndex].hex);
+
+    repaintBalls();
+    updateTurnPill();
+  }
+
+  // ===== Board / animation model =====
+  const boardEl = document.getElementById("board");
+  let cells = [];
+  let ballsLayer = null;
+
+  // Rings CCW
+  const OUTER = [0,1,2,3,7,11,15,14,13,12,8,4];
+  const INNER = [5,6,10,9];
+
+  const LINES = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+
+  // board holds pieceId or null
+  let board = Array(16).fill(null);
+  let pieces = new Map(); // id -> {id, player}
+  let nextPieceId = 1;
+
+  let current = 1;
+  let phase = "moveOpp"; // moveOpp, placeOwn, shift
+  let selectedFrom = null;
+  let winner = 0;
+  let winLine = null;
+
+  let history = [];
+  let locked = false;
+
+  // AI
+  let aiEnabled = false;
+  let aiPlayer = 2;
+  let aiBusy = false;
+
+  // Animations
+  let animationsOn = true;
+
+  // ===== Helpers =====
+  const idxToRC = (i) => [Math.floor(i/4), i%4];
+  const rcToIdx = (r,c) => r*4+c;
+  const other = (p) => p===1?2:1;
+
+  function neighbors4(i){
+    const [r,c] = idxToRC(i);
+    const out=[];
+    if (r>0) out.push(rcToIdx(r-1,c));
+    if (r<3) out.push(rcToIdx(r+1,c));
+    if (c>0) out.push(rcToIdx(r,c-1));
+    if (c<3) out.push(rcToIdx(r,c+1));
+    return out;
+  }
+
+  function cellXY(i){
+    const [r,c] = idxToRC(i);
+    const cs = parseFloat(getComputedStyle(root).getPropertyValue("--cell")) || 104;
+    const gap = parseFloat(getComputedStyle(root).getPropertyValue("--gap")) || 12;
+    return { x: c*(cs+gap), y: r*(cs+gap) };
+  }
+
+  function setStatus(kind, text){
+    statusEl.className = `status ${kind||""}`.trim();
+    statusEl.textContent = text;
+  }
+
+  function updateTurnPill(){
+    const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
+    const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
+    const hex = current===1 ? p1Hex : p2Hex;
+    turnDot.style.setProperty("--c", hex);
+    if (winner) turnText.textContent = t().turn(winner);
+    else turnText.textContent = t().turn(current);
+  }
+
+  function opponentHasMove(oppPlayer){
+    for (let i=0;i<16;i++){
+      const pid = board[i];
+      if (!pid) continue;
+      if (pieces.get(pid)?.player !== oppPlayer) continue;
+      if (neighbors4(i).some(n => board[n]===null)) return true;
+    }
+    return false;
+  }
+
+  function legalOpponentMoves(oppPlayer){
+    const moves=[];
+    for (let i=0;i<16;i++){
+      const pid = board[i];
+      if (!pid) continue;
+      if (pieces.get(pid)?.player !== oppPlayer) continue;
+      for (const n of neighbors4(i)){
+        if (board[n]===null) moves.push({from:i,to:n});
+      }
+    }
+    return moves;
+  }
+
+  function checkWin(){
+    for (const line of LINES){
+      const a = board[line[0]];
+      if (!a) continue;
+      const pa = pieces.get(a)?.player;
+      if (!pa) continue;
+      if (line.every(i => board[i] && pieces.get(board[i])?.player===pa)){
+        return { winner: pa, line };
+      }
+    }
+    return { winner: 0, line: null };
+  }
+
+  function rotateRing(ring){
+    const before = ring.map(i => board[i]);
+    for (let k=0;k<ring.length;k++){
+      board[ ring[(k+1)%ring.length] ] = before[k];
+    }
+  }
+  function doShift(){
+    rotateRing(OUTER);
+    rotateRing(INNER);
+  }
+
+  // ===== DOM build / balls =====
+  function buildBoard(){
+    boardEl.innerHTML = "";
+    cells = [];
+
+    for (let i=0;i<16;i++){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cellBtn";
+      b.dataset.i = String(i);
+      b.addEventListener("click", () => onCellClick(i));
+      cells.push(b);
+      boardEl.appendChild(b);
+    }
+
+    ballsLayer = document.createElement("div");
+    ballsLayer.className = "ballsLayer";
+    boardEl.appendChild(ballsLayer);
+  }
+
+  function ensureBallElement(id){
+    let el = ballsLayer.querySelector(`.ball[data-id="${id}"]`);
+    if (el) return el;
+
+    const piece = pieces.get(id);
+    el = document.createElement("div");
+    el.className = "ball";
+    el.dataset.id = String(id);
+
+    const inner = document.createElement("div");
+    inner.className = "ballInner";
+
+    const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
+    const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
+    inner.style.setProperty("--c", piece.player===1 ? p1Hex : p2Hex);
+
+    el.appendChild(inner);
+    ballsLayer.appendChild(el);
+    return el;
+  }
+
+  function repaintBalls(){
+    const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
+    const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
+    for (const [id,p] of pieces.entries()){
+      const inner = ballsLayer.querySelector(`.ball[data-id="${id}"] .ballInner`);
+      if (!inner) continue;
+      inner.style.setProperty("--c", p.player===1 ? p1Hex : p2Hex);
+    }
+  }
+
+  function layoutBalls(skipAnim=false){
+    // map piece -> index
+    const pos = new Map();
+    for (let i=0;i<16;i++){
+      if (board[i]!==null) pos.set(board[i], i);
+    }
+
+    // remove offboard elements
+    for (const el of Array.from(ballsLayer.querySelectorAll(".ball"))){
+      const id = Number(el.dataset.id);
+      if (!pos.has(id)) el.remove();
+    }
+
+    for (const [id, idx] of pos.entries()){
+      const el = ensureBallElement(id);
+      const {x,y} = cellXY(idx);
+
+      if (skipAnim || !animationsOn){
+        el.style.transition = "none";
+      } else {
+        el.style.transition = "transform 360ms cubic-bezier(.2,.9,.2,1)";
+      }
+
+      el.style.setProperty("--x", `${x}px`);
+      el.style.setProperty("--y", `${y}px`);
+      el.style.transform = `translate(${x}px, ${y}px)`;
+
+      if (skipAnim || !animationsOn){
+        el.getBoundingClientRect();
+        el.style.transition = animationsOn ? "transform 360ms cubic-bezier(.2,.9,.2,1)" : "none";
+      }
+    }
+  }
+
+  function waitForTransitions(){
+    if (!animationsOn) return Promise.resolve();
+    const els = Array.from(ballsLayer.querySelectorAll(".ball"));
+    if (els.length===0) return Promise.resolve();
+
+    return new Promise(resolve => {
+      let left = 0;
+      const done = () => { left--; if (left<=0) resolve(); };
+
+      for (const el of els){
+        const dur = getComputedStyle(el).transitionDuration;
+        const ms = dur.includes("ms") ? parseFloat(dur) : parseFloat(dur)*1000;
+        if (!ms) continue;
+
+        left++;
+        const onEnd = (e) => {
+          if (e.propertyName!=="transform") return;
+          el.removeEventListener("transitionend", onEnd);
+          done();
+        };
+        el.addEventListener("transitionend", onEnd);
+      }
+
+      if (left===0) resolve();
+      setTimeout(resolve, 520);
+    });
+  }
+
+  function placePiece(player, at){
+    const id = nextPieceId++;
+    pieces.set(id, {id, player});
+    board[at] = id;
+
+    const el = ensureBallElement(id);
+    const {x,y} = cellXY(at);
+    el.style.setProperty("--x", `${x}px`);
+    el.style.setProperty("--y", `${y}px`);
+    el.style.transform = `translate(${x}px, ${y}px)`;
+
+    if (animationsOn){
+      el.classList.remove("pop");
+      void el.getBoundingClientRect();
+      el.classList.add("pop");
+      setTimeout(()=>el.classList.remove("pop"), 240);
+    }
+  }
+
+  function applyOpponentMove(from,to){
+    const pid = board[from];
+    board[from] = null;
+    board[to] = pid;
+  }
+
+  // ===== UI sync =====
+  function syncHighlights(){
+    cells.forEach(c => c.classList.remove("hint","target","selected","win"));
+
+    if (winLine){
+      for (const i of winLine) cells[i].classList.add("win");
+    }
+    if (winner) return;
+
+    const opp = other(current);
+    if (phase==="moveOpp"){
+      if (opponentHasMove(opp)){
+        for (let i=0;i<16;i++){
+          const pid = board[i];
+          if (!pid) continue;
+          if (pieces.get(pid)?.player !== opp) continue;
+          if (neighbors4(i).some(n => board[n]===null)){
+            cells[i].classList.add("hint");
+          }
+        }
+        if (selectedFrom!==null){
+          cells[selectedFrom].classList.add("selected");
+          for (const n of neighbors4(selectedFrom)){
+            if (board[n]===null) cells[n].classList.add("target");
+          }
+        }
+      }
+    } else if (phase==="placeOwn"){
+      for (let i=0;i<16;i++){
+        if (board[i]===null) cells[i].classList.add("hint");
+      }
+    }
+  }
+
+  function updateStatusText(){
+    const L = t();
+    if (winner){
+      setStatus("ok", L.win(winner));
+      return;
+    }
+    const opp = other(current);
+
+    if (phase==="moveOpp"){
+      if (!opponentHasMove(opp)){
+        phase = "placeOwn";
+        setStatus("warn", L.stepMoveSkip(current));
+      } else {
+        setStatus("", L.stepMove(current));
+      }
+    } else if (phase==="placeOwn"){
+      setStatus("", L.stepPlace(current));
+    } else {
+      setStatus("warn", L.stepShift(current));
+    }
+  }
+
+  function syncControls(){
+    btnUndo.disabled = history.length===0 || locked;
+    btnShift.disabled = (phase!=="shift") || winner || locked;
+    btnNew.disabled = locked;
+    btnReset.disabled = locked;
+    modeEl.disabled = locked;
+    aiFirstEl.disabled = locked || (modeEl.value!=="ai");
+    aiSpeedEl.disabled = locked || (modeEl.value!=="ai");
+    animEl.disabled = locked;
+    p1ColorEl.disabled = locked;
+    p2ColorEl.disabled = locked;
+  }
+
+  function syncAll(){
+    updateTurnPill();
+    syncHighlights();
+    updateStatusText();
+    syncControls();
+  }
+
+  // ===== History =====
+  function pushHistory(){
+    const snapBoard = board.slice();
+    const snapPieces = Array.from(pieces.entries()).map(([k,v]) => [k, {...v}]);
+    history.push({
+      board: snapBoard,
+      pieces: snapPieces,
+      nextPieceId,
+      current,
+      phase,
+      selectedFrom,
+      winner,
+      winLine: winLine ? winLine.slice() : null
+    });
+    if (history.length>80) history.shift();
+  }
+
+  function undo(){
+    if (history.length===0 || locked) return;
+    const s = history.pop();
+    board = s.board;
+    pieces = new Map(s.pieces);
+    nextPieceId = s.nextPieceId;
+    current = s.current;
+    phase = s.phase;
+    selectedFrom = s.selectedFrom;
+    winner = s.winner;
+    winLine = s.winLine;
+    setStatus("warn", "Undo.");
+    layoutBalls(true);
+    syncAll();
+  }
+
+  // ===== AI =====
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  function aiDelays(){
+    const v = aiSpeedEl.value;
+    if (v==="fast") return {think: 260, step: 220};
+    if (v==="slow") return {think: 650, step: 520};
+    return {think: 420, step: 360};
+  }
+
+  function scoreBoard(forPlayer){
+    const opp = other(forPlayer);
+    const res = checkWin();
+    if (res.winner===forPlayer) return 1e9;
+    if (res.winner===opp) return -1e9;
+
+    let score = 0;
+    for (const line of LINES){
+      let p=0,o=0;
+      for (const i of line){
+        const pid = board[i];
+        if (!pid) continue;
+        const pl = pieces.get(pid)?.player;
+        if (pl===forPlayer) p++;
+        else if (pl===opp) o++;
+      }
+      if (p>0 && o>0) continue;
+      if (p>0) score += Math.pow(6,p);
+      if (o>0) score -= Math.pow(6,o)*1.1;
+    }
+    // center preference
+    for (const i of [5,6,9,10]){
+      const pid = board[i];
+      if (!pid) continue;
+      const pl = pieces.get(pid)?.player;
+      if (pl===forPlayer) score += 2;
+      if (pl===opp) score -= 2;
+    }
+    return score;
+  }
+
+  function cloneState(){
+    return {
+      board: board.slice(),
+      pieces: new Map(Array.from(pieces.entries()).map(([k,v])=>[k,{...v}])),
+      nextPieceId
+    };
+  }
+  function restoreState(s){
+    board = s.board.slice();
+    pieces = new Map(Array.from(s.pieces.entries()).map(([k,v])=>[k,{...v}]));
+    nextPieceId = s.nextPieceId;
+  }
+
+  function generateActions(player){
+    const opp = other(player);
+    const oppMoves = opponentHasMove(opp) ? legalOpponentMoves(opp) : [null];
+    const actions=[];
+    for (const mv of oppMoves){
+      const snap = cloneState();
+      if (mv) applyOpponentMove(mv.from, mv.to);
+      for (let i=0;i<16;i++){
+        if (board[i]===null) actions.push({mv, place:i});
+      }
+      restoreState(snap);
+    }
+    return actions;
+  }
+
+  function applyActionScore(player, action){
+    const opp = other(player);
+    if (action.mv) applyOpponentMove(action.mv.from, action.mv.to);
+
+    const tmp = nextPieceId++;
+    pieces.set(tmp, {id:tmp, player});
+    board[action.place] = tmp;
+
+    doShift();
+    return scoreBoard(player);
+  }
+
+  function pickBestAIAction(player){
+    const actions = generateActions(player);
+    let best = null;
+    for (const a of actions){
+      const snap = cloneState();
+      const s = applyActionScore(player, a);
+      restoreState(snap);
+      if (!best || s>best.s) best = {a, s};
+    }
+    return best?.a || actions[0];
+  }
+
+  async function maybeAIMove(){
+    if (!aiEnabled || winner) return;
+    if (current !== aiPlayer) return;
+    if (aiBusy) return;
+
+    aiBusy = true;
+    locked = true;
+    syncAll();
+
+    const {think, step} = aiDelays();
+    setStatus("warn", t().aiThinking);
+    await sleep(think);
+
+    try{
+      // force correct phase for AI
+      if (phase !== "moveOpp"){
+        phase = "moveOpp";
+        selectedFrom = null;
+        syncAll();
+        await sleep(120);
+      }
+
+      const action = pickBestAIAction(aiPlayer);
+      pushHistory();
+
+      // Step 1: move opponent piece (if possible)
+      if (action.mv){
+        setStatus("warn", t().aiMove);
+        applyOpponentMove(action.mv.from, action.mv.to);
+        layoutBalls(false);
+        await waitForTransitions();
+        await sleep(step);
+      }
+
+      // Step 2: place
+      placePiece(aiPlayer, action.place);
+      layoutBalls(false);
+      await waitForTransitions();
+      await sleep(step);
+
+      // Step 3: shift
+      phase = "shift";
+      syncAll();
+      await sleep(140);
+
+      doShift();
+      layoutBalls(false);
+      await waitForTransitions();
+      await sleep(step);
+
+      const res = checkWin();
+      winner = res.winner;
+      winLine = res.line;
+
+      if (winner){
+        setStatus("ok", t().win(winner));
+      } else {
+        current = other(current);
+        phase = "moveOpp";
+        selectedFrom = null;
+      }
+
+      syncAll();
+    } finally {
+      locked = false;
+      aiBusy = false;
+      syncAll();
+    }
+  }
+
+  // ===== Click handling =====
+  async function onCellClick(i){
+    if (locked || winner) return;
+    if (aiEnabled && current===aiPlayer) return;
+
+    const opp = other(current);
+
+    if (phase==="moveOpp"){
+      if (!opponentHasMove(opp)){
+        phase = "placeOwn";
+        syncAll();
+        return;
+      }
+
+      if (selectedFrom===null){
+        const pid = board[i];
+        if (!pid) return;
+        if (pieces.get(pid)?.player !== opp) return;
+        if (!neighbors4(i).some(n=>board[n]===null)) return;
+        selectedFrom = i;
+        syncAll();
+        return;
+      } else {
+        if (i===selectedFrom){
+          selectedFrom = null;
+          syncAll();
+          return;
+        }
+        if (board[i]!==null) return;
+        if (!neighbors4(selectedFrom).includes(i)) return;
+
+        pushHistory();
+        applyOpponentMove(selectedFrom, i);
+        selectedFrom = null;
+
+        layoutBalls(false);
+        await waitForTransitions();
+
+        phase = "placeOwn";
+        syncAll();
+        return;
+      }
+    }
+
+    if (phase==="placeOwn"){
+      if (board[i]!==null) return;
+
+      pushHistory();
+      placePiece(current, i);
+      layoutBalls(false);
+      await waitForTransitions();
+
+      phase = "shift";
+      syncAll();
+      return;
+    }
+
+    if (phase==="shift"){
+      await performShiftSequence();
+    }
+  }
+
+  async function performShiftSequence(){
+    if (locked || winner || phase!=="shift") return;
+
+    pushHistory();
+    doShift();
+    layoutBalls(false);
+    await waitForTransitions();
+
+    const res = checkWin();
+    winner = res.winner;
+    winLine = res.line;
+
+    if (winner){
+      setStatus("ok", t().win(winner));
+      syncAll();
+      return;
+    }
+
+    current = other(current);
+    phase = "moveOpp";
+    selectedFrom = null;
+    syncAll();
+
+    // AI turn next
+    maybeAIMove();
+  }
+
+  // ===== Mode/config =====
+  function configureMode(){
+    aiEnabled = (modeEl.value==="ai");
+    aiFirstEl.disabled = !aiEnabled;
+    aiSpeedEl.disabled = !aiEnabled;
+
+    if (!aiEnabled){
+      aiPlayer = 2;
+      current = 1;
+      return;
+    }
+
+    if (aiFirstEl.value==="aiFirst"){
+      aiPlayer = 1;
+      current = 1;
+    } else {
+      aiPlayer = 2;
+      current = 1;
+    }
+  }
+
+  function resetAll(keepSettings){
+    locked = false;
+    aiBusy = false;
+
+    board = Array(16).fill(null);
+    pieces = new Map();
+    nextPieceId = 1;
+
+    winner = 0;
+    winLine = null;
+    history = [];
+    selectedFrom = null;
+    phase = "moveOpp";
+
+    if (!keepSettings){
+      modeEl.value = "pvp";
+      aiFirstEl.value = "humanFirst";
+      aiSpeedEl.value = "normal";
+      animEl.value = "on";
+      p1ColorEl.selectedIndex = 0;
+      p2ColorEl.selectedIndex = 1;
+      enforceDistinctColors();
+    }
+
+    animationsOn = (animEl.value==="on");
+
+    configureMode();
+    // If AI starts => aiPlayer=1 and current=1
+    // If human starts in AI mode => aiPlayer=2 and current=1
+
+    layoutBalls(true);
+    syncAll();
+
+    if (aiEnabled && current===aiPlayer) maybeAIMove();
+  }
+
+  // ===== Events =====
+  btnNew.addEventListener("click", () => resetAll(true));
+  btnReset.addEventListener("click", () => resetAll(true));
+  btnUndo.addEventListener("click", undo);
+  btnShift.addEventListener("click", () => performShiftSequence());
+
+  modeEl.addEventListener("change", () => resetAll(true));
+  aiFirstEl.addEventListener("change", () => resetAll(true));
+  aiSpeedEl.addEventListener("change", () => localStorage.setItem("shift4_aiSpeed", aiSpeedEl.value));
+
+  animEl.addEventListener("change", () => {
+    animationsOn = (animEl.value==="on");
+    localStorage.setItem("shift4_anim", animEl.value);
+    layoutBalls(true);
+  });
+
+  p1ColorEl.addEventListener("change", enforceDistinctColors);
+  p2ColorEl.addEventListener("change", enforceDistinctColors);
+
+  langBtn.addEventListener("click", () => {
+    const next = (getLang()==="en") ? "sv" : "en";
+    setLang(next);
+    applyTranslations();
+  });
+
+  window.addEventListener("resize", () => layoutBalls(true));
+
+  // ===== Translations apply =====
+  function applyTranslations(){
+    const L = t();
+    homeBtn.textContent = L.home;
+    appSubtitle.textContent = L.appSubtitle;
+    gameHeaderSub.textContent = L.gameHeaderSub;
+
+    settingsTitle.textContent = L.settingsTitle;
+    btnNew.textContent = L.newGame;
+    btnReset.textContent = L.reset;
+    btnUndo.textContent = L.undo;
+    btnShift.textContent = L.shift;
+
+    modeLabel.textContent = L.modeLabel;
+    const modeOpts = modeEl.querySelectorAll("option");
+    if (modeOpts[0]) modeOpts[0].textContent = L.modePvp;
+    if (modeOpts[1]) modeOpts[1].textContent = L.modeAi;
+
+    aiFirstLabel.textContent = L.aiFirstLabel;
+    const aiFirstOpts = aiFirstEl.querySelectorAll("option");
+    if (aiFirstOpts[0]) aiFirstOpts[0].textContent = L.humanFirst;
+    if (aiFirstOpts[1]) aiFirstOpts[1].textContent = L.aiFirst;
+
+    aiSpeedLabel.textContent = L.aiSpeedLabel;
+    const sp = aiSpeedEl.querySelectorAll("option");
+    if (sp[0]) sp[0].textContent = L.speedFast;
+    if (sp[1]) sp[1].textContent = L.speedNormal;
+    if (sp[2]) sp[2].textContent = L.speedSlow;
+
+    animLabel.textContent = L.animLabel;
+    const an = animEl.querySelectorAll("option");
+    if (an[0]) an[0].textContent = L.animOn;
+    if (an[1]) an[1].textContent = L.animOff;
+
+    p1Label.textContent = L.p1Label;
+    p2Label.textContent = L.p2Label;
+
+    helpText.innerHTML = L.helpHtml;
+
+    const isSv = getLang()==="sv";
+    langIcon.textContent = isSv ? "🇸🇪" : "🇬🇧";
+    langText.textContent = isSv ? "Svenska" : "English";
+
+    // repopulate color names in correct language
+    populateColors();
+
+    updateTurnPill();
+    syncAll();
+  }
+
+  // ===== Init =====
+  function init(){
+    setLang(getLang());
+
+    // restore saved settings
+    const savedSpeed = localStorage.getItem("shift4_aiSpeed");
+    if (savedSpeed) aiSpeedEl.value = savedSpeed;
+
+    const savedAnim = localStorage.getItem("shift4_anim");
+    if (savedAnim) animEl.value = savedAnim;
+    animationsOn = (animEl.value==="on");
+
+    buildBoard();
+    populateColors();
+    configureMode();
+    applyTranslations();
+    resetAll(true);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
