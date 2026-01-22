@@ -232,6 +232,7 @@
     }
 
     .boardWrap{
+      position: relative;
       display:flex;
       justify-content:center;
       padding: 4px 8px;
@@ -443,6 +444,39 @@
       .panel{ padding:14px; }
     }
 
+
+    .gameOverlay{
+      position:absolute;
+      inset: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      padding: 14px;
+      z-index: 5;
+    }
+    .gameOverlay .box{
+      pointer-events:none;
+      max-width: 520px;
+      width: fit-content;
+      text-align:center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.55);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.25;
+      white-space: pre-line;
+    }
+    :root[data-theme="light"] .gameOverlay .box{
+      background: rgba(255,255,255,0.78);
+      color: rgba(0,0,0,0.88);
+    }
+
   </style>
 </head>
 
@@ -487,6 +521,7 @@
           <div class="msPanel bevel">
             <div class="boardWrap">
               <div class="board" id="board" aria-label="Board 4x4" data-density="auto"></div>
+              <div class="gameOverlay" id="gameOverlay" hidden></div>
             </div>
           </div>
         </div>
@@ -571,6 +606,7 @@
           <div class="row" style="align-items:center;">
             <button class="btn" id="btnNew" type="button" disabled>New game</button>
             <button class="btn" id="btnUndo" type="button" disabled>Undo</button>
+            <button class="btn" id="btnSkip" type="button" disabled>Skip</button>
             <button class="btn primary" id="btnShift" type="button" disabled>Shift</button>
             <button class="btn danger" id="btnReset" type="button" disabled>Reset</button>
           </div>
@@ -616,6 +652,8 @@
       reset: "Reset",
       undo: "Undo",
       shift: "Shift",
+      skip: "Hoppa över",
+      skip: "Skip",
 
       modeLabel: "Mode",
       modeAi: "Play vs AI",
@@ -650,9 +688,11 @@
       beforeStart: "Choose your settings and press Start game.",
       turn: (p) => `Turn: Player ${p}`,
       draw: "🤝 Draw!\n(Both players have 4 in a row after the Shift)",
+      drawNoWin: "🤝 Draw!\n(No one got 4 in a row after the last ball and 5 shifts)",
+      finalShifts: "Board is full.\nAuto shifting up to 5 times…",
       win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
-      stepMove: (p) => `Player ${p}:\nStep 1: Move one opponent ball to an adjacent empty cell.`,
-      stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nSkip to Step 2: Place your ball.`,
+      stepMove: (p) => `Player ${p}:\nStep 1 (optional): Move one opponent ball to an adjacent empty cell, or press Skip.`,
+      stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nStep 1 is skipped.\nStep 2: Place your ball.`,
       stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
       stepShift: (p) => `Player ${p}:\nStep 3: Press Shift (rotate both orbits).`,
       aiThinking: "AI is thinking…",
@@ -662,7 +702,7 @@
       helpHtml: `
 <b>How to play</b><br/>
 Each turn has <b>3 steps</b>:<br/>
-1) <b>Move</b> one of your opponent’s balls to a neighboring empty cell (up/down/left/right) if possible.<br/>
+1) <b>Optional:</b> <b>Move</b> one of your opponent’s balls to a neighboring empty cell (up/down/left/right), or press <b>Skip</b>.<br/>
 2) <b>Place</b> one of your own balls on any empty cell.<br/>
 3) <b>Shift</b>: rotate both orbits one step. The outer ring and the inner ring rotate at the same time.<br/><br/>
 <b>Win / Draw</b><br/>
@@ -680,6 +720,8 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       reset: "Återställ",
       undo: "Ångra",
       shift: "Shift",
+      skip: "Hoppa över",
+      skip: "Skip",
 
       modeLabel: "Läge",
       modeAi: "Spela mot AI",
@@ -714,9 +756,11 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       beforeStart: "Gör dina inställningar och tryck på Starta spel.",
       turn: (p) => `Tur: Spelare ${p}`,
       draw: "🤝 Oavgjort!\n(Båda har 4 i rad efter Shift)",
+      drawNoWin: "🤝 Oavgjort!\n(Ingen fick 4 i rad efter sista kulan och 5 shiftningar)",
+      finalShifts: "Brädet är fullt.\nShiftar automatiskt upp till 5 gånger…",
       win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
-      stepMove: (p) => `Spelare ${p}:\nSteg 1: Flytta 1 av motståndarens kulor till en tom granne.`,
-      stepMoveSkip: (p) => `Spelare ${p}:\nMotståndaren kan inte flyttas.\nHoppa till Steg 2: Placera din kula.`,
+      stepMove: (p) => `Spelare ${p}:\nSteg 1 (valfritt): Flytta 1 av motståndarens kulor till en tom granne, eller tryck Hoppa över.`,
+      stepMoveSkip: (p) => `Spelare ${p}:\nInget giltigt flytt finns.\nSteg 1 hoppas över.\nSteg 2: Placera din kula.`,
       stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
       stepShift: (p) => `Spelare ${p}:\nSteg 3: Tryck Shift (rotera båda orbits ett steg).`,
       aiThinking: "AI tänker…",
@@ -726,7 +770,7 @@ After every Shift, the game checks for <b>4 in a row</b> (horizontal, vertical, 
       helpHtml: `
 <b>Så spelar du</b><br/>
 Varje tur har <b>3 steg</b>:<br/>
-1) <b>Flytta</b> 1 av motståndarens kulor till en tom granne (upp/ner/vänster/höger) om möjligt.<br/>
+1) <b>Valfritt:</b> <b>Flytta</b> 1 av motståndarens kulor till en tom granne (upp/ner/vänster/höger), eller tryck <b>Hoppa över</b>.<br/>
 2) <b>Placera</b> 1 av dina egna kulor på valfri tom ruta.<br/>
 3) <b>Shift</b>: rotera båda orbits ett steg. Yttre ringen och inre ringen roterar samtidigt.<br/><br/>
 <b>Vinst / Oavgjort</b><br/>
@@ -780,10 +824,12 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   const btnNew = document.getElementById("btnNew");
   const btnReset = document.getElementById("btnReset");
   const btnUndo = document.getElementById("btnUndo");
+  const btnSkip = document.getElementById("btnSkip");
   const btnShift = document.getElementById("btnShift");
 
   const statusEl = document.getElementById("status");
   const helpText = document.getElementById("helpText");
+  const gameOverlay = document.getElementById("gameOverlay");
 
   const turnDot = document.getElementById("turnDot");
   const turnText = document.getElementById("turnText");
@@ -882,6 +928,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   let selectedFrom = null;
 
   let winner = 0; // 0 none, 1/2 win, 3 draw
+  let drawType = null; // "both" | "no4"
   let winLine = null;
 
   let history = [];
@@ -921,6 +968,24 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     statusEl.className = `status ${kind||""}`.trim();
     statusEl.textContent = text;
   }
+
+  function showOverlay(message){
+    if (!gameOverlay) return;
+    if (!message){
+      gameOverlay.hidden = true;
+      gameOverlay.innerHTML = "";
+      return;
+    }
+    gameOverlay.hidden = false;
+    gameOverlay.innerHTML = `<div class="box">${escapeHtml(message)}</div>`;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+
 
   function updateTurnPill(){
     const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
@@ -1169,7 +1234,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }
 
     if (winner===3){
-      setStatus("ok", L.draw);
+      setStatus("ok", (drawType==="no4") ? L.drawNoWin : L.draw);
       return;
     }
     if (winner){
@@ -1178,6 +1243,11 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }
 
     const opp = other(current);
+
+    if (phase==="endShifts"){
+      setStatus("warn", L.finalShifts);
+      return;
+    }
 
     if (phase==="moveOpp"){
       if (!opponentHasMove(opp)){
@@ -1204,6 +1274,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     btnReset.disabled = !started || locked;
 
     btnUndo.disabled = !started || history.length===0 || locked;
+    btnSkip.disabled = !started || (phase!=="moveOpp") || winner || locked || (aiEnabled && current===aiPlayer);
     // If Auto shift is ON, we keep Shift enabled (so you can still press), but it will happen automatically soon.
     btnShift.disabled = !started || (phase!=="shift") || winner || locked;
 
@@ -1219,10 +1290,33 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   }
 
   function syncAll(){
+    // Auto-skip Step 1 if opponent has no legal move
+    if (started && !winner && phase==="moveOpp"){
+      const opp = other(current);
+      if (!opponentHasMove(opp)){
+        phase = "placeOwn";
+        selectedFrom = null;
+      }
+    }
+
     updateTurnPill();
     syncHighlights();
     updateStatusText();
     syncControls();
+    updateOverlay();
+  }
+
+  function updateOverlay(){
+    const L = t();
+    if (!started || !winner){
+      showOverlay(null);
+      return;
+    }
+    if (winner===3){
+      showOverlay((drawType==="no4") ? L.drawNoWin : L.draw);
+      return;
+    }
+    showOverlay(L.win(winner));
   }
 
   function pushHistory(){
@@ -1236,6 +1330,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       phase,
       selectedFrom,
       winner,
+      drawType,
       winLine: winLine ? winLine.slice() : null
     });
     if (history.length>80) history.shift();
@@ -1252,6 +1347,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     phase = s.phase;
     selectedFrom = s.selectedFrom;
     winner = s.winner;
+    drawType = s.drawType || null;
     winLine = s.winLine;
     setStatus("warn", t().undoMsg);
     layoutBalls(true);
@@ -1313,7 +1409,9 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
   function generateActions(player){
     const opp = other(player);
-    const oppMoves = opponentHasMove(opp) ? legalOpponentMoves(opp) : [null];
+    const oppMoves = [null, ...legalOpponentMoves(opp)];
+    // If no legal moves exist, the list will just contain null
+    if (oppMoves.length===1){}
     const actions=[];
     for (const mv of oppMoves){
       const snap = cloneState();
@@ -1399,6 +1497,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
       const res = checkWinners();
       winner = res.winner;
+      drawType = (winner===3) ? "both" : null;
       winLine = res.line;
 
       if (!winner){
@@ -1435,11 +1534,27 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }, animationsOn ? 420 : 240);
   }
 
+  function skipMoveOpp(){
+    if (!started || locked || winner) return;
+    if (aiEnabled && current===aiPlayer) return;
+    if (phase!=="moveOpp") return;
+    // Skipping does not change the board, but it should be undoable
+    pushHistory();
+    selectedFrom = null;
+    phase = "placeOwn";
+    syncAll();
+  }
+
   async function onCellClick(i){
     if (!started || locked || winner) return;
     if (aiEnabled && current===aiPlayer) return;
 
     const opp = other(current);
+
+    if (phase==="endShifts"){
+      setStatus("warn", L.finalShifts);
+      return;
+    }
 
     if (phase==="moveOpp"){
       if (!opponentHasMove(opp)){
@@ -1486,6 +1601,14 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
       layoutBalls(false);
       await waitForTransitions();
 
+      // If the board is full after placing the last ball:
+      // - If someone already has 4 in a row, the game ends immediately.
+      // - Otherwise we auto-shift 5 times (slow enough to see) and check after each shift.
+      if (board.every(x => x !== null)){
+        await finaleAfterLastPlacement();
+        return;
+      }
+
       phase = "shift";
       syncAll();
 
@@ -1505,6 +1628,60 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     }
   }
 
+
+  async function finaleAfterLastPlacement(){
+    if (!started || winner) return;
+
+    // Lock the game during the finale sequence
+    locked = true;
+    clearAutoShiftTimer();
+    phase = "endShifts";
+    selectedFrom = null;
+    syncAll();
+
+    try{
+      // Check immediately after the last placement (before any shifts)
+      let res = checkWinners();
+      if (res.winner){
+        winner = res.winner;
+        drawType = (winner===3) ? "both" : null;
+        winLine = res.line;
+        syncAll();
+        return;
+      }
+
+      // Auto shift up to 5 times, with pauses so you can see each shift
+      const pause = animationsOn ? 520 : 240;
+
+      for (let k=0;k<5;k++){
+        await sleep(pause);
+        pushHistory();
+        doShift();
+        layoutBalls(false);
+        await waitForTransitions();
+
+        res = checkWinners();
+        if (res.winner){
+          winner = res.winner;
+          drawType = (winner===3) ? "both" : null;
+          winLine = res.line;
+          syncAll();
+          return;
+        }
+      }
+
+      // No winner after 5 shifts => draw
+      winner = 3;
+      drawType = "no4";
+      winLine = null;
+      syncAll();
+    } finally {
+      locked = false;
+      // keep phase as endShifts for status/overlay, doesn't matter after end
+      syncAll();
+    }
+  }
+
   async function performShiftSequence(fromAuto=false){
     if (!started || winner || phase!=="shift") return;
     // if auto, we may have locked already; ensure locked during execution
@@ -1520,6 +1697,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
 
       const res = checkWinners();
       winner = res.winner;
+      drawType = (winner===3) ? "both" : null;
       winLine = res.line;
 
       if (!winner){
@@ -1568,6 +1746,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     nextPieceId = 1;
 
     winner = 0;
+    drawType = null;
     winLine = null;
     history = [];
     selectedFrom = null;
@@ -1617,6 +1796,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
   btnNew.addEventListener("click", newGameSameSettings);
   btnReset.addEventListener("click", resetToSetup);
   btnUndo.addEventListener("click", undo);
+  btnSkip.addEventListener("click", () => skipMoveOpp());
   btnShift.addEventListener("click", () => performShiftSequence(false));
 
   aiSpeedEl.addEventListener("change", () => localStorage.setItem("shift4_aiSpeed", aiSpeedEl.value));
@@ -1667,6 +1847,7 @@ Efter varje Shift kontrolleras <b>4 i rad</b> (horisontellt, vertikalt eller dia
     btnNew.textContent = L.newGame;
     btnReset.textContent = L.reset;
     btnUndo.textContent = L.undo;
+    btnSkip.textContent = L.skip;
     btnShift.textContent = L.shift;
 
     modeLabel.textContent = L.modeLabel;
