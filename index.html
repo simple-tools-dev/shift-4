@@ -49,7 +49,6 @@
           async src="//gc.zgo.at/count.js"></script>
 
   <style>
-    /* ===== Same variables as Minesweeper ===== */
     :root{
       --bg:#0b0f14; --bg2:#0e1520;
       --card: rgba(255,255,255,0.06);
@@ -65,16 +64,15 @@
       --warn: #fbbf24;
       --bad: #fb7185;
 
-      /* Minesweeper-ish bevel palette */
       --ms-surface: rgba(255,255,255,0.05);
       --ms-surface2: rgba(255,255,255,0.03);
       --ms-hi: rgba(255,255,255,0.16);
       --ms-lo: rgba(0,0,0,0.55);
 
-      /* Shift-4 sizing */
-      --cell: 104px;
-      --gap: 12px;
-      --pad: 10px;
+      /* Responsive board sizing */
+      --cell: clamp(70px, 18vw, 104px);
+      --gap:  clamp(8px,  2.6vw, 12px);
+      --pad:  10px;
     }
     :root[data-theme="light"]{
       --bg:#f7f7fb; --bg2:#ffffff;
@@ -94,6 +92,12 @@
       --ms-lo: rgba(0,0,0,0.28);
     }
 
+    /* Manual "mobile/compact" mode toggle */
+    :root[data-layout="compact"]{
+      --cell: clamp(64px, 17vw, 92px);
+      --gap:  clamp(7px,  2.2vw, 10px);
+    }
+
     *{ box-sizing:border-box; }
     body{
       margin:0;
@@ -105,6 +109,7 @@
         linear-gradient(180deg, var(--bg), var(--bg2));
       min-height:100vh;
       overflow-x:auto;
+      -webkit-tap-highlight-color: transparent;
     }
     a{ color:inherit; text-decoration:none; }
 
@@ -147,6 +152,7 @@
       user-select:none;
       transition: transform .08s ease, background .15s ease, border-color .15s ease;
       font-size:14px;
+      touch-action: manipulation;
     }
     .btn:hover{ background: var(--btnHover); }
     .btn:active{ transform: translateY(1px); }
@@ -160,12 +166,13 @@
 
     .grid{
       display:grid;
-      grid-template-columns: 1fr 360px; /* original layout */
+      grid-template-columns: 1fr 360px;
       gap:18px;
       align-items:start;
     }
     @media (max-width: 920px){
       .grid{ grid-template-columns: 1fr; }
+      .wrap{ padding:18px 14px 40px; }
     }
 
     .card{
@@ -191,10 +198,12 @@
       letter-spacing:.2px;
     }
     .sub{ color: var(--muted); font-size:12px; margin-top:4px; }
-
     .bodyPad{ padding:16px; }
+    @media (max-width: 920px){
+      .bodyPad{ padding:14px; }
+      .cardHeader{ padding:12px 14px; }
+    }
 
-    /* Board shell */
     .msPanel{
       background: linear-gradient(180deg, var(--ms-surface), var(--ms-surface2));
       border: 1px solid var(--border);
@@ -212,11 +221,7 @@
         inset -1px -1px 0 var(--ms-lo);
     }
 
-    .boardWrap{
-      display:flex;
-      justify-content:center;
-      padding: 4px 0;
-    }
+    .boardWrap{ display:flex; justify-content:center; padding: 4px 0; }
 
     .board{
       position: relative;
@@ -249,9 +254,9 @@
         inset 1px 1px 0 var(--ms-hi),
         inset -1px -1px 0 var(--ms-lo);
       cursor:pointer;
+      touch-action: manipulation;
     }
     :root[data-theme="light"] .cellBtn{ background: rgba(0,0,0,0.04); }
-
     .cellBtn:focus{ outline:none; box-shadow: 0 0 0 4px var(--focus); position:relative; z-index:2; }
     .cellBtn:active{
       box-shadow:
@@ -264,7 +269,6 @@
     .selected{ outline: 2px solid rgba(255,255,255,0.55); outline-offset: 2px; }
     .win{ outline: 3px solid rgba(52,211,153,0.85); outline-offset: 2px; }
 
-    /* Balls overlay */
     .ballsLayer{
       position:absolute;
       left: var(--pad);
@@ -307,7 +311,6 @@
       100%{ transform: translate(var(--x), var(--y)) scale(1); opacity:1; }
     }
 
-    /* Side panel controls */
     .panel{ padding:16px; display:flex; flex-direction:column; gap:12px; }
     .row{ display:flex; gap:10px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
     label{ font-size:12px; color: var(--muted); }
@@ -346,6 +349,7 @@
       font-size: 13px;
       color: var(--text);
       user-select:none;
+      white-space: nowrap;
     }
     :root[data-theme="light"] .pill{ background: rgba(0,0,0,0.03); }
 
@@ -353,6 +357,7 @@
       width:12px; height:12px; border-radius: 999px;
       background: var(--c, #fff);
       border:1px solid rgba(255,255,255,0.30);
+      flex: 0 0 auto;
     }
     :root[data-theme="light"] .dot{ border-color: rgba(0,0,0,0.20); }
 
@@ -392,6 +397,10 @@
       <div class="nav">
         <a class="btn" href="https://simple-tools-dev.github.io/" id="homeBtn">← Main menu</a>
 
+        <button class="btn" id="layoutBtn" type="button" aria-label="Toggle mobile layout">
+          <span id="layoutIcon">📱</span><span id="layoutText">Mobile layout</span>
+        </button>
+
         <button class="btn" id="langBtn" type="button" aria-label="Switch language">
           <span id="langIcon">🇬🇧</span><span id="langText">English</span>
         </button>
@@ -403,7 +412,7 @@
     </div>
 
     <div class="grid">
-      <!-- LEFT: game (original layout) -->
+      <!-- LEFT: game -->
       <section class="card">
         <div class="cardHeader">
           <div>
@@ -419,9 +428,7 @@
         <div class="bodyPad">
           <div class="msPanel bevel">
             <div class="boardWrap">
-              <div class="board" id="board" aria-label="Board 4x4">
-                <!-- cells + balls injected -->
-              </div>
+              <div class="board" id="board" aria-label="Board 4x4"></div>
             </div>
           </div>
         </div>
@@ -431,7 +438,7 @@
       <aside class="card">
         <div class="cardHeader">
           <h2 id="settingsTitle">Settings</h2>
-          <button class="btn secondary" id="btnNew" type="button">New game</button>
+          <button class="btn" id="btnNew" type="button">New game</button>
         </div>
 
         <div class="panel">
@@ -509,7 +516,7 @@
 (() => {
   const root = document.documentElement;
 
-  // ===== Theme (same behavior as Minesweeper) =====
+  // ===== Theme =====
   const themeBtn = document.getElementById("themeBtn");
   const themeIcon = document.getElementById("themeIcon");
   const themeText = document.getElementById("themeText");
@@ -528,6 +535,32 @@
     const cur = root.getAttribute("data-theme") || "dark";
     applyTheme(cur === "dark" ? "light" : "dark");
     layoutBalls(true);
+  });
+
+  // ===== Layout (compact/mobile toggle) =====
+  const layoutBtn = document.getElementById("layoutBtn");
+  const layoutIcon = document.getElementById("layoutIcon");
+  const layoutText = document.getElementById("layoutText");
+
+  function applyLayout(mode){
+    if (mode === "compact") root.setAttribute("data-layout", "compact");
+    else root.removeAttribute("data-layout");
+    localStorage.setItem("shift4_layout", mode);
+    layoutIcon.textContent = (mode === "compact") ? "🖥️" : "📱";
+    layoutText.textContent = (mode === "compact") ? "Desktop layout" : "Mobile layout";
+    layoutBalls(true);
+  }
+  const savedLayout = localStorage.getItem("shift4_layout");
+  // auto: if on small screen and no explicit choice, default to compact
+  if (savedLayout){
+    applyLayout(savedLayout);
+  } else {
+    const small = window.matchMedia && window.matchMedia("(max-width: 420px)").matches;
+    applyLayout(small ? "compact" : "normal");
+  }
+  layoutBtn.addEventListener("click", () => {
+    const cur = root.getAttribute("data-layout") === "compact" ? "compact" : "normal";
+    applyLayout(cur === "compact" ? "normal" : "compact");
   });
 
   // ===== i18n =====
@@ -563,6 +596,7 @@
 
       turn: (p) => `Turn: Player ${p}`,
       win: (p) => `🎉 Player ${p} wins!\n(4 in a row after Shift)`,
+      draw: "🤝 Draw!\nBoth players got 4 in a row after Shift.",
       stepMove: (p) => `Player ${p}:\nStep 1: Move one opponent ball to an adjacent empty cell.`,
       stepMoveSkip: (p) => `Player ${p}:\nOpponent has no legal move.\nSkip to Step 2: Place your ball.`,
       stepPlace: (p) => `Player ${p}:\nStep 2: Place your ball on any empty cell.`,
@@ -576,7 +610,8 @@
 2) Place your own ball on any empty cell<br/>
 3) Press <kbd>Shift</kbd> to rotate both orbits one step<br/><br/>
 <b>Rules / Win</b><br/>
-You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.
+You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>after</b> the Shift.<br/>
+If <b>both</b> players have 4 in a row after the same Shift, it's a <b>draw</b>.
       `.trim(),
     },
     sv: {
@@ -610,6 +645,7 @@ You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>afte
 
       turn: (p) => `Tur: Spelare ${p}`,
       win: (p) => `🎉 Spelare ${p} vinner!\n(4 i rad efter Shift)`,
+      draw: "🤝 Oavgjort!\nBåda fick 4 i rad efter Shift.",
       stepMove: (p) => `Spelare ${p}:\nSteg 1: Flytta en av motståndarens kulor till en tom granne.`,
       stepMoveSkip: (p) => `Spelare ${p}:\nMotståndaren kan inte flyttas.\nHoppa till Steg 2: Placera din kula.`,
       stepPlace: (p) => `Spelare ${p}:\nSteg 2: Placera din kula på valfri tom ruta.`,
@@ -623,7 +659,8 @@ You win if you have <b>4 in a row</b> (horizontal, vertical or diagonal) <b>afte
 2) Placera din egen kula på valfri tom ruta<br/>
 3) Tryck <kbd>Shift</kbd> för att rotera båda orbits ett steg<br/><br/>
 <b>Regler / Vinst</b><br/>
-Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>efter</b> Shift.
+Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>efter</b> Shift.<br/>
+Om <b>båda</b> har 4 i rad efter samma Shift blir det <b>oavgjort</b>.
       `.trim(),
     }
   };
@@ -688,9 +725,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   const cname = (c) => getLang()==="sv" ? c.sv : c.en;
 
   function populateColors(){
-    const s1 = p1ColorEl.selectedIndex;
-    const s2 = p2ColorEl.selectedIndex;
-
     p1ColorEl.innerHTML = "";
     p2ColorEl.innerHTML = "";
     for (const c of COLORS){
@@ -702,11 +736,10 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
       p2ColorEl.appendChild(o2);
     }
 
-    // restore saved
     const savedP1 = localStorage.getItem("shift4_p1Color");
     const savedP2 = localStorage.getItem("shift4_p2Color");
-    let i1 = savedP1 ? COLORS.findIndex(x=>x.hex===savedP1) : (s1>=0?s1:0);
-    let i2 = savedP2 ? COLORS.findIndex(x=>x.hex===savedP2) : (s2>=0?s2:1);
+    let i1 = savedP1 ? COLORS.findIndex(x=>x.hex===savedP1) : 0;
+    let i2 = savedP2 ? COLORS.findIndex(x=>x.hex===savedP2) : 1;
     if (i1<0) i1=0;
     if (i2<0) i2=1;
 
@@ -759,16 +792,18 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     [0,5,10,15],[3,6,9,12]
   ];
 
-  // board holds pieceId or null
-  let board = Array(16).fill(null);
-  let pieces = new Map(); // id -> {id, player}
+  let board = Array(16).fill(null);        // cell -> pieceId or null
+  let pieces = new Map();                  // id -> {id, player}
   let nextPieceId = 1;
 
   let current = 1;
-  let phase = "moveOpp"; // moveOpp, placeOwn, shift
+  let phase = "moveOpp";                   // moveOpp, placeOwn, shift
   let selectedFrom = null;
+
+  // winner: 0 none, 1/2 win, 3 draw
   let winner = 0;
   let winLine = null;
+  let winLines = [];                       // for draw/highlight all
 
   let history = [];
   let locked = false;
@@ -781,7 +816,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   // Animations
   let animationsOn = true;
 
-  // ===== Helpers =====
   const idxToRC = (i) => [Math.floor(i/4), i%4];
   const rcToIdx = (r,c) => r*4+c;
   const other = (p) => p===1?2:1;
@@ -813,7 +847,9 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
     const hex = current===1 ? p1Hex : p2Hex;
     turnDot.style.setProperty("--c", hex);
-    if (winner) turnText.textContent = t().turn(winner);
+
+    if (winner === 3) turnText.textContent = "—";
+    else if (winner) turnText.textContent = t().turn(winner);
     else turnText.textContent = t().turn(current);
   }
 
@@ -840,17 +876,28 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     return moves;
   }
 
+  // ===== FIX: draw-aware win check =====
   function checkWin(){
+    const wins = { 1: [], 2: [] };
+
     for (const line of LINES){
       const a = board[line[0]];
       if (!a) continue;
       const pa = pieces.get(a)?.player;
       if (!pa) continue;
-      if (line.every(i => board[i] && pieces.get(board[i])?.player===pa)){
-        return { winner: pa, line };
+
+      if (line.every(i => board[i] && pieces.get(board[i])?.player === pa)){
+        wins[pa].push(line);
       }
     }
-    return { winner: 0, line: null };
+
+    const p1 = wins[1].length > 0;
+    const p2 = wins[2].length > 0;
+
+    if (p1 && p2) return { winner: 3, line: null, wins }; // draw
+    if (p1) return { winner: 1, line: wins[1][0], wins };
+    if (p2) return { winner: 2, line: wins[2][0], wins };
+    return { winner: 0, line: null, wins };
   }
 
   function rotateRing(ring){
@@ -864,7 +911,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     rotateRing(INNER);
   }
 
-  // ===== DOM build / balls =====
   function buildBoard(){
     boardEl.innerHTML = "";
     cells = [];
@@ -906,6 +952,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   }
 
   function repaintBalls(){
+    if (!ballsLayer) return;
     const p1Hex = COLORS[p1ColorEl.selectedIndex]?.hex || COLORS[0].hex;
     const p2Hex = COLORS[p2ColorEl.selectedIndex]?.hex || COLORS[1].hex;
     for (const [id,p] of pieces.entries()){
@@ -916,13 +963,13 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   }
 
   function layoutBalls(skipAnim=false){
-    // map piece -> index
+    if (!ballsLayer) return;
+
     const pos = new Map();
     for (let i=0;i<16;i++){
       if (board[i]!==null) pos.set(board[i], i);
     }
 
-    // remove offboard elements
     for (const el of Array.from(ballsLayer.querySelectorAll(".ball"))){
       const id = Number(el.dataset.id);
       if (!pos.has(id)) el.remove();
@@ -950,7 +997,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   }
 
   function waitForTransitions(){
-    if (!animationsOn) return Promise.resolve();
+    if (!animationsOn || !ballsLayer) return Promise.resolve();
     const els = Array.from(ballsLayer.querySelectorAll(".ball"));
     if (els.length===0) return Promise.resolve();
 
@@ -1002,14 +1049,23 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     board[to] = pid;
   }
 
-  // ===== UI sync =====
   function syncHighlights(){
     cells.forEach(c => c.classList.remove("hint","target","selected","win"));
 
-    if (winLine){
-      for (const i of winLine) cells[i].classList.add("win");
+    // highlight wins
+    if (winner === 1 || winner === 2){
+      if (winLine){
+        for (const i of winLine) cells[i].classList.add("win");
+      }
+      return;
     }
-    if (winner) return;
+    if (winner === 3){
+      // draw: highlight all winning lines for both
+      for (const line of winLines){
+        for (const i of line) cells[i].classList.add("win");
+      }
+      return;
+    }
 
     const opp = other(current);
     if (phase==="moveOpp"){
@@ -1038,10 +1094,15 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
 
   function updateStatusText(){
     const L = t();
-    if (winner){
+    if (winner === 1 || winner === 2){
       setStatus("ok", L.win(winner));
       return;
     }
+    if (winner === 3){
+      setStatus("warn", L.draw);
+      return;
+    }
+
     const opp = other(current);
 
     if (phase==="moveOpp"){
@@ -1078,7 +1139,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     syncControls();
   }
 
-  // ===== History =====
   function pushHistory(){
     const snapBoard = board.slice();
     const snapPieces = Array.from(pieces.entries()).map(([k,v]) => [k, {...v}]);
@@ -1090,7 +1150,8 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
       phase,
       selectedFrom,
       winner,
-      winLine: winLine ? winLine.slice() : null
+      winLine: winLine ? winLine.slice() : null,
+      winLines: winLines.map(x => x.slice())
     });
     if (history.length>80) history.shift();
   }
@@ -1106,6 +1167,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     selectedFrom = s.selectedFrom;
     winner = s.winner;
     winLine = s.winLine;
+    winLines = s.winLines || [];
     setStatus("warn", "Undo.");
     layoutBalls(true);
     syncAll();
@@ -1126,6 +1188,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     const res = checkWin();
     if (res.winner===forPlayer) return 1e9;
     if (res.winner===opp) return -1e9;
+    if (res.winner===3) return 0; // draw
 
     let score = 0;
     for (const line of LINES){
@@ -1141,7 +1204,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
       if (p>0) score += Math.pow(6,p);
       if (o>0) score -= Math.pow(6,o)*1.1;
     }
-    // center preference
     for (const i of [5,6,9,10]){
       const pid = board[i];
       if (!pid) continue;
@@ -1181,7 +1243,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   }
 
   function applyActionScore(player, action){
-    const opp = other(player);
     if (action.mv) applyOpponentMove(action.mv.from, action.mv.to);
 
     const tmp = nextPieceId++;
@@ -1218,7 +1279,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     await sleep(think);
 
     try{
-      // force correct phase for AI
       if (phase !== "moveOpp"){
         phase = "moveOpp";
         selectedFrom = null;
@@ -1229,7 +1289,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
       const action = pickBestAIAction(aiPlayer);
       pushHistory();
 
-      // Step 1: move opponent piece (if possible)
       if (action.mv){
         setStatus("warn", t().aiMove);
         applyOpponentMove(action.mv.from, action.mv.to);
@@ -1238,13 +1297,11 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
         await sleep(step);
       }
 
-      // Step 2: place
       placePiece(aiPlayer, action.place);
       layoutBalls(false);
       await waitForTransitions();
       await sleep(step);
 
-      // Step 3: shift
       phase = "shift";
       syncAll();
       await sleep(140);
@@ -1257,9 +1314,15 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
       const res = checkWin();
       winner = res.winner;
       winLine = res.line;
+      winLines = [];
+      if (res.wins){
+        winLines = [...(res.wins[1]||[]), ...(res.wins[2]||[])];
+      }
 
-      if (winner){
+      if (winner === 1 || winner === 2){
         setStatus("ok", t().win(winner));
+      } else if (winner === 3){
+        setStatus("warn", t().draw);
       } else {
         current = other(current);
         phase = "moveOpp";
@@ -1347,9 +1410,18 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     const res = checkWin();
     winner = res.winner;
     winLine = res.line;
+    winLines = [];
+    if (res.wins){
+      winLines = [...(res.wins[1]||[]), ...(res.wins[2]||[])];
+    }
 
-    if (winner){
+    if (winner === 1 || winner === 2){
       setStatus("ok", t().win(winner));
+      syncAll();
+      return;
+    }
+    if (winner === 3){
+      setStatus("warn", t().draw);
       syncAll();
       return;
     }
@@ -1359,7 +1431,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     selectedFrom = null;
     syncAll();
 
-    // AI turn next
     maybeAIMove();
   }
 
@@ -1394,6 +1465,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
 
     winner = 0;
     winLine = null;
+    winLines = [];
     history = [];
     selectedFrom = null;
     phase = "moveOpp";
@@ -1411,9 +1483,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     animationsOn = (animEl.value==="on");
 
     configureMode();
-    // If AI starts => aiPlayer=1 and current=1
-    // If human starts in AI mode => aiPlayer=2 and current=1
-
     layoutBalls(true);
     syncAll();
 
@@ -1490,9 +1559,7 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
     langIcon.textContent = isSv ? "🇸🇪" : "🇬🇧";
     langText.textContent = isSv ? "Svenska" : "English";
 
-    // repopulate color names in correct language
     populateColors();
-
     updateTurnPill();
     syncAll();
   }
@@ -1501,7 +1568,6 @@ Du vinner om du har <b>4 i rad</b> (horisontellt, vertikalt eller diagonalt) <b>
   function init(){
     setLang(getLang());
 
-    // restore saved settings
     const savedSpeed = localStorage.getItem("shift4_aiSpeed");
     if (savedSpeed) aiSpeedEl.value = savedSpeed;
 
