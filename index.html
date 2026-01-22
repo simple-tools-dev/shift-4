@@ -73,9 +73,9 @@
       --gap: 12px;
       --pad: 10px;
 
-      --mobileCell: 74px;
-      --mobileGap: 10px;
-      --mobilePad: 10px;
+      --mobileCell: 66px;
+      --mobileGap: 8px;
+      --mobilePad: 8px;
 
       /* Stronger highlights (more contrast) */
       --hintStroke: rgba(110,231,255,0.90);
@@ -234,7 +234,10 @@
     .boardWrap{
       display:flex;
       justify-content:center;
-      padding: 4px 0;
+      padding: 4px 8px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .board{
@@ -432,6 +435,14 @@
       background: rgba(0,0,0,0.04);
       border-bottom-color: rgba(0,0,0,0.22);
     }
+
+    @media (max-width: 420px){
+      .wrap{ padding:18px 12px 42px; }
+      .bodyPad{ padding:12px; }
+      .cardHeader{ padding:12px 14px; }
+      .panel{ padding:14px; }
+    }
+
   </style>
 </head>
 
